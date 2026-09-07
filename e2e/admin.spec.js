@@ -1,0 +1,40 @@
+import { test, expect } from '@playwright/test';
+const adminPath = '/gestion-tests-12345678901234567890';
+test('visitor reports a peer and admin reviews, bans and deletes the report', async ({ browser }) => {
+  const contexts = await Promise.all([1, 2, 3].map(() => browser.newContext({ permissions: ['camera', 'microphone'] })));
+  const [a, b, admin] = await Promise.all(contexts.map(c => c.newPage()));
+  const errors = []; for (const p of [a, b, admin]) p.on('pageerror', e => errors.push(e.message));
+  for (const page of [a, b]) { await page.goto('http://localhost:3100'); await page.locator('#start').click(); }
+  await expect(a.locator('#remotePanel')).toHaveAttribute('data-state', 'connected', { timeout: 20000 });
+  await a.locator('#reportOpen').click(); await a.locator('#reportReason').selectOption({ label: 'Autre' });
+  await a.locator('#reportDetails').fill('Test <img src=x onerror=alert(1)>'); await a.locator('#reportSend').click();
+  await expect(a.locator('#error')).toContainText('Signalement transmis'); await expect(a.locator('#reportDialog')).toBeHidden();
+  await admin.goto('http://localhost:3100' + adminPath); await admin.locator('#password').fill('test-password-only'); await admin.locator('#login button').click();
+  await expect(admin.locator('#dashboard')).toBeVisible();
+  await expect(admin.locator('.report .details')).toHaveText('Test <img src=x onerror=alert(1)>');
+  await expect(admin.locator('.report img')).toHaveCount(0);
+  await expect(admin.locator('.report')).toContainText('127.0.0.1');
+  await admin.getByLabel('Statut du signalement').selectOption('reviewing'); await admin.getByLabel('Notes internes').fill('Examen manuel');
+  await admin.locator('.report').getByRole('button', { name: 'Enregistrer', exact: true }).click();
+  await expect(admin.locator('.report h3')).toContainText('En cours');
+  await admin.screenshot({ path: 'test-results/admin.png', fullPage: true });
+  admin.on('dialog', dialog => dialog.accept());
+  await admin.getByRole('button', { name: 'Bloquer cette IP' }).click();
+  await expect(admin.locator('#bans')).toContainText('127.0.0.1');
+  await expect(b.locator('#error')).toContainText('suspendu');
+  await admin.getByRole('button', { name: 'Débloquer', exact: true }).click(); await expect(admin.locator('.ban')).toHaveCount(0);
+  await admin.locator('.report').getByRole('button', { name: 'Supprimer' }).click(); await expect(admin.locator('.report')).toHaveCount(0);
+  await admin.locator('#logout').click(); await expect(admin.locator('#login')).toBeVisible();
+  expect(errors).toEqual([]); await Promise.all(contexts.map(c => c.close()));
+});
+test('privacy choices persist and analytics can be withdrawn', async ({ page }) => {
+  await page.goto('/'); await page.locator('#privacyOpen').click();
+  await expect(page.locator('#analyticsConsent')).not.toBeChecked();
+  await expect(page.locator('#relayOnly')).toBeDisabled();
+  await page.locator('#hideCountry').check(); await page.locator('#analyticsConsent').check(); await page.locator('#privacyForm button').click();
+  expect(await page.evaluate(() => localStorage.getItem('mingle.visitor'))).toBeTruthy();
+  await page.reload(); await page.locator('#privacyOpen').click();
+  await expect(page.locator('#analyticsConsent')).toBeChecked(); await expect(page.locator('#hideCountry')).toBeChecked();
+  await page.locator('#analyticsConsent').uncheck(); await page.locator('#privacyForm button').click();
+  expect(await page.evaluate(() => localStorage.getItem('mingle.visitor'))).toBe(null);
+});

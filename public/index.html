@@ -1,0 +1,38 @@
+﻿<!doctype html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101211"><title>Mingle</title><link rel="stylesheet" href="/style.css"><script src="/privacy.js" defer></script><script src="/app.js" defer></script></head>
+<body>
+<header><a href="/" aria-label="Mingle accueil">mingle<span>.</span></a><button id="privacyOpen" class="quiet" aria-label="Confidentialité et paramètres" title="Confidentialité et paramètres">⚙</button></header>
+<main>
+<section class="videos" aria-label="Conversation vidéo">
+<div class="video-panel" id="localPanel">
+<video id="localVideo" autoplay playsinline muted aria-label="Ta caméra"></video>
+<div class="placeholder" id="localPlaceholder" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="12" height="12" rx="3"/><path d="m15 10 6-3v10l-6-3"/></svg></div>
+<span class="country" id="localCountry" aria-label="Ton pays">🌐 —</span>
+</div>
+<div class="video-panel" id="remotePanel" data-state="idle">
+<video id="remoteVideo" autoplay playsinline aria-label="Caméra de l’inconnu"></video>
+<div class="placeholder" id="remotePlaceholder" aria-hidden="true"><span class="search-ring"></span></div>
+<span class="country" id="remoteCountry" aria-label="Pays de l’inconnu" hidden>🌐 —</span>
+<button id="playRemote" class="play" aria-label="Activer le son et la vidéo" hidden>▶</button>
+<button id="reportOpen" class="quiet report-open" aria-label="Signaler cette personne" title="Signaler cette personne" disabled>⚑</button>
+</div>
+</section>
+<section class="chat" aria-label="Chat textuel">
+<div id="messages" role="log" aria-live="polite" aria-label="Messages"></div>
+<form id="chatForm">
+<input id="message" aria-label="Ton message" placeholder="Message…" maxlength="2000" autocomplete="off" disabled>
+<button id="send" aria-label="Envoyer" disabled>↗</button>
+</form>
+</section>
+<div class="actions"><button id="stop" disabled>stop</button><button id="start" disabled><span id="buttonLabel">Rechercher</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></button></div>
+<p id="error" role="alert" hidden></p>
+<span id="status" class="sr-only" role="status" aria-live="polite"></span>
+</main>
+<dialog id="privacyDialog"><h2>Confidentialité</h2>
+<form id="privacyForm"><label class="check"><input id="hideCountry" type="checkbox"> Masquer mon pays à mon interlocuteur</label><label class="check"><input id="relayOnly" type="checkbox"> Masquer mon IP à mon interlocuteur via un relais</label><p id="relayHint"></p><label class="check"><input id="analyticsConsent" type="checkbox"> Participer aux statistiques de visiteurs distincts</label><p>Facultatif. Un identifiant aléatoire est conservé dans ce navigateur avec ton accord. Tu peux le retirer ici.</p><button type="submit">Enregistrer</button></form>
+<details><summary>Mes données et mes droits</summary><div id="privacyText"></div></details>
+<details><summary>Règles</summary><p>Service réservé aux adultes. Nudité, harcèlement, haine, menaces, escroqueries et contenus illégaux sont interdits. Signale un comportement problématique avec le drapeau et quitte la conversation. Les signalements sont examinés a posteriori : aucune surveillance vidéo en direct n’est réalisée par l’administration.</p></details>
+<p id="privacyNotice" role="status"></p><form method="dialog"><button class="quiet">Fermer</button></form></dialog>
+<dialog id="reportDialog"><h2>Signaler cette personne</h2><form id="reportForm"><label>Motif<select id="reportReason" required><option>Nudité / contenu sexuel</option><option>Harcèlement / haine</option><option>Mineur présumé</option><option>Violence / menace</option><option>Spam / escroquerie</option><option>Autre</option></select></label><label>Détails facultatifs<textarea id="reportDetails" maxlength="1000" placeholder="Décris le problème sans ajouter d’informations personnelles inutiles."></textarea></label><p>Le motif, les détails, l’heure et l’IP de connexion de cette personne seront transmis à l’administration. Aucune capture vidéo ni historique du chat ne sera joint. L’envoi termine la conversation.</p><button id="reportSend">Envoyer le signalement</button><p id="reportNotice" role="status"></p></form><form method="dialog"><button class="quiet">Annuler</button></form></dialog>
+</body></html>

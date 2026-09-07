@@ -1,0 +1,23 @@
+# Remplacer les valeurs exemples. Installer coturn sur une machine avec IP publique.
+listening-port=3478
+fingerprint
+use-auth-secret
+static-auth-secret=REMPLACER_PAR_UN_SECRET_ALEATOIRE_LONG
+realm=turn.exemple.fr
+server-name=turn.exemple.fr
+# Si le serveur est derrière un NAT, configurer external-ip=IP_PUBLIQUE/IP_PRIVEE.
+min-port=49160
+max-port=49260
+no-loopback-peers
+no-multicast-peers
+denied-peer-ip=10.0.0.0-10.255.255.255
+denied-peer-ip=172.16.0.0-172.31.255.255
+denied-peer-ip=192.168.0.0-192.168.255.255
+denied-peer-ip=169.254.0.0-169.254.255.255
+denied-peer-ip=127.0.0.0-127.255.255.255
+denied-peer-ip=::1
+denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+denied-peer-ip=fe80::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+user-quota=12
+total-quota=1200
+no-cli

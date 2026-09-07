@@ -1,0 +1,23 @@
+{
+  "name": "mingle-chat",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js",
+    "dev": "node --watch --env-file-if-exists=.env server.js",
+    "test": "node --test --test-isolation=none test/server.test.js test/admin.test.js",
+    "test:e2e": "playwright test",
+    "setup:admin": "node scripts/setup-admin.js"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "geoip-lite": "^2.0.3",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}
