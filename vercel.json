@@ -12,6 +12,8 @@
   }],
   "rewrites": [
     { "source": "/", "has": [{ "type": "host", "value": "adminsecret.mingletv.app" }], "destination": "/api/handler?route=admin-page" },
+    { "source": "/api/admin-assets/app", "destination": "/api/handler?route=admin-assets/app.js" },
+    { "source": "/api/admin-assets/style", "destination": "/api/handler?route=admin-assets/style.css" },
     { "source": "/api/:path*", "destination": "/api/handler?route=:path*" }
   ],
   "headers": [{
