@@ -118,7 +118,11 @@ function connect() {
       const token = epoch;
       signalQueue = signalQueue.then(() => { if (token !== epoch) return; return m.type === 'matched' ? matched(m) : signal(m); }).catch(() => { if (token === epoch && active) error('Video unavailable. Try the next person.'); });
     }
-    if (m.type === 'left') { epoch++; closePeer(); state('idle', 'This person has left. Try the next person.'); error(); controls(); }
+    if (m.type === 'left') {
+      epoch++; closePeer(); error();
+      if (active && stream) begin();
+      else { state('idle', 'This person has left. Try the next person.'); controls(); }
+    }
   };
   socket.onclose = event => {
     config = null; stop(); if (banned) return;
