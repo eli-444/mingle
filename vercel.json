@@ -5,6 +5,11 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "functions": { "api/handler.js": { "includeFiles": "public/admin*", "maxDuration": 30 } },
+  "routes": [{
+    "src": "^/$",
+    "has": [{ "type": "host", "value": "adminsecret.mingletv.app" }],
+    "dest": "/api/handler?route=admin-page"
+  }],
   "rewrites": [
     { "source": "/", "has": [{ "type": "host", "value": "adminsecret.mingletv.app" }], "destination": "/api/handler?route=admin-page" },
     { "source": "/api/:path*", "destination": "/api/handler?route=:path*" }
