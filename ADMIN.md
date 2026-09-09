@@ -1,4 +1,4 @@
-# Administration Mingle
+# Administration Mingle TV
 
 ## Se connecter
 
@@ -33,11 +33,11 @@ En local, les IP seront souvent `127.0.0.1`. En production, le proxy doit écras
 
 ## Statistiques
 
-- En direct : connexions ouvertes, visiteurs en attente, duos actifs.
-- Par mois et par jour : connexions WebSocket, duos créés, signalements reçus.
+- En direct, actualisé toutes les 5 secondes quand l’onglet admin est visible : connexions ouvertes, visiteurs en attente, duos actifs, pages vues du jour et pic de connexions simultanées du jour. L’actualisation automatique n’écrase pas les notes ni les champs en cours de saisie.
+- Par mois et par jour : pages vues, connexions WebSocket, pic de connexions simultanées, duos créés, signalements reçus. Les nouvelles colonnes sont ajoutées automatiquement aux bases existantes ; aucun historique antérieur de pages vues ou de pics n’est inventé.
 - Visiteurs distincts mensuels : identifiants de navigateurs ayant accepté les statistiques, transformés par HMAC avec un contexte mensuel.
 
-Une reconnexion compte comme une connexion supplémentaire. Un duo créé ne prouve pas que la vidéo a abouti. Les visiteurs consentants ne constituent ni un décompte exhaustif ni une identification des personnes. Robots et multi-appareils peuvent fausser les statistiques. Les mois sans activité n’ont pas de ligne et aucune fréquentation historique n’est inventée.
+Une connexion en ligne correspond à un onglet du chat ouvert, même sans caméra. Une reconnexion compte comme une connexion supplémentaire. Une page vue correspond à un chargement de l’accueil ou d’une page légale avec JavaScript, sans cookie ni identifiant pour cette mesure. Le panel n’est pas compté. Un duo créé ne prouve pas que la vidéo a abouti. Les visiteurs consentants ne constituent ni un décompte exhaustif ni une identification des personnes. Robots, bloqueurs et multi-appareils peuvent fausser les statistiques. Les mois sans activité n’ont pas de ligne et aucune fréquentation historique n’est inventée. La bande passante des vidéos doit être suivie chez le prestataire TURN.
 
 Les statistiques ne contiennent aucune IP. Le consentement facultatif est désactivé par défaut ; son retrait demande l’effacement des décomptes distincts liés à l’identifiant local sur les 13 mois conservés. Les compteurs d’activité agrégés restent présents. La suppression d’un signalement retire son dossier personnel, mais pas le compteur historique agrégé.
 
@@ -45,7 +45,7 @@ Les statistiques ne contiennent aucune IP. Le consentement facultatif est désac
 
 Les visiteurs peuvent masquer leur pays, demander un relais vidéo obligatoire quand TURN est configuré et accepter/refuser la mesure facultative de visiteurs distincts. Le relais voit l’IP de connexion ; il la masque à l’autre participant. Le choix du relais s’applique à la prochaine recherche. Un VPN ou un relais n’empêche pas l’interlocuteur d’enregistrer son écran.
 
-Le panel permet de renseigner l’exploitant, le contact, l’hébergeur et les informations sur les transferts. Ces champs sont initialement vides plutôt que d’inventer une identité. Le texte public présente données, finalités, destinataires, durées et droits. L’éditeur doit l’adapter et valider les bases légales et la situation réelle avant publication, en particulier pour un hébergement hors UE. Références : [information des personnes, CNIL](https://www.cnil.fr/fr/conformite-rgpd-information-des-personnes-et-transparence), [durées de conservation, CNIL](https://www.cnil.fr/fr/passer-laction/les-durees-de-conservation-des-donnees).
+Le panel permet de renseigner l’exploitant, son adresse, le contact, l’hébergeur et les informations sur les transferts. Aurora Web & Security et aurorawebsec@gmail.com sont les valeurs initiales fournies par l’exploitant ; l’adresse et l’hébergement restent à compléter. Le texte public présente données, finalités, destinataires, durées et droits. L’éditeur doit l’adapter et valider les bases légales et la situation réelle avant publication, en particulier pour un hébergement hors UE. Références : [information des personnes, CNIL](https://www.cnil.fr/fr/conformite-rgpd-information-des-personnes-et-transparence), [durées de conservation, CNIL](https://www.cnil.fr/fr/passer-laction/les-durees-de-conservation-des-donnees).
 
 Les signalements et le journal d’actions admin sont conservés 30 jours par défaut (7/30/90 au choix). Les blocages expirent au terme choisi. La purge s’exécute au démarrage, chaque minute et lors de l’actualisation admin. Les statistiques sont conservées sur le mois courant et les 12 précédents. Les dossiers supprimés ne sont plus accessibles par l’application ; l’effacement des sauvegardes et la conservation des journaux de l’hébergeur restent à configurer par l’exploitant.
 

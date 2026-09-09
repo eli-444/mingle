@@ -20,6 +20,8 @@ export function createManagement(env, online) {
     CREATE TABLE IF NOT EXISTS audit (id INTEGER PRIMARY KEY, action TEXT NOT NULL, created INTEGER NOT NULL);
     CREATE INDEX IF NOT EXISTS reports_created ON reports(created);
   `);
+  const columns = db.prepare('PRAGMA table_info(daily)').all().map(column => column.name);
+  for (const column of ['pageviews', 'peak']) if (!columns.includes(column)) db.exec(`ALTER TABLE daily ADD COLUMN ${column} INTEGER NOT NULL DEFAULT 0`);
   const get = (key, fallback) => { const row = db.prepare('SELECT value FROM settings WHERE key=?').get(key); return row ? JSON.parse(row.value) : fallback; };
   const put = (key, value) => db.prepare('INSERT OR REPLACE INTO settings VALUES (?,?)').run(key, JSON.stringify(value));
   const secret = get('secret', null) || randomBytes(32).toString('hex'); put('secret', secret);
@@ -30,7 +32,7 @@ export function createManagement(env, online) {
   let globalLogin = { count: 0, until: 0 };
   const hash = value => createHash('sha256').update(value).digest('hex');
   const identity = (id, month) => createHmac('sha256', secret).update(month + ':' + id).digest('hex');
-  function policy() { return { operator: get('operator', ''), contact: get('contact', ''), hosting: get('hosting', ''), retentionDays: get('retentionDays', 30), analyticsMonths: 13, relayAvailable: !!(env.TURN_URLS && env.TURN_SECRET), relayRequired: env.RELAY_ONLY === 'true' }; }
+  function policy() { return { operator: get('operator', 'Aurora Web & Security'), contact: get('contact', 'aurorawebsec@gmail.com'), address: get('address', ''), hosting: get('hosting', ''), retentionDays: get('retentionDays', 30), analyticsMonths: 13, relayAvailable: !!(env.TURN_URLS && env.TURN_SECRET), relayRequired: env.RELAY_ONLY === 'true' }; }
   function purge() {
     const now = Date.now(), cutoff = now - policy().retentionDays * day;
     db.prepare('DELETE FROM reports WHERE created < ?').run(cutoff);
@@ -44,8 +46,18 @@ export function createManagement(env, online) {
   }
   purge(); const timer = setInterval(purge, 60000); timer.unref();
   function count(field) {
-    if (!['connections', 'matches', 'reports'].includes(field)) return;
+    if (!['connections', 'matches', 'reports', 'pageviews'].includes(field)) return;
     db.prepare(`INSERT INTO daily(date,${field}) VALUES (?,1) ON CONFLICT(date) DO UPDATE SET ${field}=${field}+1`).run(new Date().toISOString().slice(0, 10));
+  }
+  function metrics() {
+    const current = online(), today = new Date().toISOString().slice(0, 10);
+    if (current.connected) recordPeak(current.connected);
+    return { online: current, today: db.prepare('SELECT * FROM daily WHERE date=?').get(today) || { date: today, pageviews: 0, connections: 0, peak: 0, matches: 0, reports: 0 },
+      monthly: db.prepare(`SELECT substr(date,1,7) AS month, SUM(pageviews) AS pageviews, SUM(connections) AS connections, MAX(peak) AS peak, SUM(matches) AS matches, SUM(reports) AS reports, (SELECT COUNT(*) FROM visitors v WHERE v.month=substr(d.date,1,7)) AS visitors FROM daily d GROUP BY month ORDER BY month DESC LIMIT 13`).all(),
+      daily: db.prepare('SELECT * FROM daily ORDER BY date DESC LIMIT 31').all() };
+  }
+  function recordPeak(connected) {
+    db.prepare('INSERT INTO daily(date,peak) VALUES (?,?) ON CONFLICT(date) DO UPDATE SET peak=MAX(peak,excluded.peak)').run(new Date().toISOString().slice(0, 10), connected);
   }
   const banned = ip => !!db.prepare('SELECT ip FROM bans WHERE ip=? AND expires>?').get(ip, Date.now());
   function visitor(id, remove = false) {
@@ -76,13 +88,14 @@ export function createManagement(env, online) {
     if (path === '/api/privacy' && req.method === 'GET') { json(res, 200, policy()); return true; }
     if (!enabled || !path.startsWith(adminPath + '/api/')) return false;
     const endpoint = path.slice(adminPath.length + 5);
-    const expectedOrigin = env.PUBLIC_ORIGIN || `http://${req.headers.host}`;
+    const adminOrigin = env.ADMIN_ORIGIN || env.PUBLIC_ORIGIN;
+    const expectedOrigin = adminOrigin || `http://${req.headers.host}`;
     if (req.method !== 'GET' && req.headers.origin !== expectedOrigin) { json(res, 403, { error: 'Origine refusée' }); return true; }
-    const cookieName = env.PUBLIC_ORIGIN?.startsWith('https:') ? '__Host-mingle_admin' : 'mingle_admin';
+    const cookieName = adminOrigin?.startsWith('https:') ? '__Host-mingle_admin' : 'mingle_admin';
     const cookie = (req.headers.cookie || '').split(';').map(c => c.trim()).find(c => c.startsWith(cookieName + '='))?.slice(cookieName.length + 1);
     const sessionKey = cookie ? hash(cookie) : '';
     const session = sessions.get(sessionKey);
-    const secure = env.PUBLIC_ORIGIN?.startsWith('https:') ? '; Secure' : '';
+    const secure = adminOrigin?.startsWith('https:') ? '; Secure' : '';
     try {
       if (endpoint === 'login' && req.method === 'POST') {
         const now = Date.now(), key = hash(ip);
@@ -104,6 +117,7 @@ export function createManagement(env, online) {
       if (!session || session.expires <= Date.now()) { sessions.delete(sessionKey); json(res, 401, { error: 'Connexion nécessaire' }); return true; }
       if (req.method !== 'GET' && req.headers['x-csrf-token'] !== session.csrf) { json(res, 403, { error: 'Session invalide. Reconnecte-toi.' }); return true; }
       if (endpoint === 'session' && req.method === 'GET') json(res, 200, { csrf: session.csrf });
+      else if (endpoint === 'metrics' && req.method === 'GET') { purge(); json(res, 200, metrics()); }
       else if (endpoint === 'logout' && req.method === 'POST') { sessions.delete(sessionKey); res.setHeader('Set-Cookie', `${cookieName}=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${secure}`); json(res, 200, { ok: true }); }
       else if (endpoint === 'dashboard' && req.method === 'GET') {
         purge(); const url = new URL(req.url, 'http://localhost');
@@ -111,15 +125,15 @@ export function createManagement(env, online) {
         if (!['all', 'pending', 'reviewing', 'resolved', 'dismissed'].includes(status)) throw new Error('Filtre invalide');
         const page = Math.max(0, Math.min(100000, Number.parseInt(url.searchParams.get('page') || '0', 10) || 0));
         const where = status === 'all' ? '' : 'WHERE status=?', params = status === 'all' ? [] : [status];
-        json(res, 200, { online: online(), policy: policy(), reports: db.prepare(`SELECT * FROM reports ${where} ORDER BY created DESC LIMIT 50 OFFSET ?`).all(...params, page * 50), totalReports: db.prepare(`SELECT COUNT(*) AS n FROM reports ${where}`).get(...params).n,
-          monthly: db.prepare(`SELECT substr(date,1,7) AS month, SUM(connections) AS connections, SUM(matches) AS matches, SUM(reports) AS reports, (SELECT COUNT(*) FROM visitors v WHERE v.month=substr(d.date,1,7)) AS visitors FROM daily d GROUP BY month ORDER BY month DESC LIMIT 13`).all(),
-          daily: db.prepare('SELECT * FROM daily ORDER BY date DESC LIMIT 31').all(), bans: db.prepare('SELECT * FROM bans WHERE expires>? ORDER BY expires DESC LIMIT 200').all(Date.now()), audit: db.prepare('SELECT action,created FROM audit ORDER BY created DESC LIMIT 50').all() });
+        json(res, 200, { ...metrics(), policy: policy(), reports: db.prepare(`SELECT * FROM reports ${where} ORDER BY created DESC LIMIT 50 OFFSET ?`).all(...params, page * 50), totalReports: db.prepare(`SELECT COUNT(*) AS n FROM reports ${where}`).get(...params).n,
+          bans: db.prepare('SELECT * FROM bans WHERE expires>? ORDER BY expires DESC LIMIT 200').all(Date.now()), audit: db.prepare('SELECT action,created FROM audit ORDER BY created DESC LIMIT 50').all() });
       } else if (endpoint === 'settings' && req.method === 'POST') {
         const input = await body(req);
-        for (const key of ['operator', 'contact', 'hosting']) if (typeof input[key] !== 'string' || input[key].length > 500) throw new Error('Informations invalides');
+        input.address ??= get('address', '');
+        for (const key of ['operator', 'contact', 'address', 'hosting']) if (typeof input[key] !== 'string' || input[key].length > 500) throw new Error('Informations invalides');
         if (input.contact && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.contact)) throw new Error('Adresse e-mail invalide');
         if (![7, 30, 90].includes(input.retentionDays)) throw new Error('Durée invalide');
-        for (const key of ['operator', 'contact', 'hosting', 'retentionDays']) put(key, input[key]);
+        for (const key of ['operator', 'contact', 'address', 'hosting', 'retentionDays']) put(key, input[key]);
         db.prepare('INSERT INTO audit(action,created) VALUES (?,?)').run('Modification des informations de confidentialité', Date.now()); purge(); json(res, 200, { ok: true });
       } else if (endpoint === 'report' && req.method === 'POST') {
         const input = await body(req); const row = db.prepare('SELECT * FROM reports WHERE id=?').get(String(input.id));
@@ -142,5 +156,5 @@ export function createManagement(env, online) {
     } catch { json(res, 400, { error: 'Requête invalide ou opération impossible.' }); }
     return true;
   }
-  return { route, policy, count, report, visitor, banned, enabled, adminPath, close() { clearInterval(timer); db.close(); } };
+  return { route, policy, count, recordPeak, report, visitor, banned, enabled, adminPath, close() { clearInterval(timer); db.close(); } };
 }

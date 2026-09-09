@@ -37,6 +37,7 @@ function stop() {
 }
 async function begin() {
   if (busy || !config) return;
+  if (!$('adultConfirmed').checked) { error('Confirme que tu as au moins 18 ans et que tu acceptes les conditions et les règles.'); $('adultConfirmed').focus(); return; }
   busy = true; const token = ++epoch; error(); controls();
   try {
     if (!stream) {
@@ -48,7 +49,7 @@ async function begin() {
     }
     if (token !== epoch) return;
     send({ type: 'leave' }); closePeer(); active = true;
-    if (!send({ type: 'join' })) throw new Error('Serveur déconnecté. Réessaie dans un instant.');
+    if (!send({ type: 'join', adultConfirmed: true })) throw new Error('Serveur déconnecté. Réessaie dans un instant.');
     state('searching', 'Recherche en cours');
   } catch (e) {
     if (token !== epoch) return;
@@ -89,9 +90,11 @@ async function signal(m) {
   } else if (m.data.candidate) { if (pc.remoteDescription) await pc.addIceCandidate(m.data.candidate); else pendingCandidates.push(m.data.candidate); }
 }
 function connect() {
-  socket = new WebSocket((location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + location.host + '/ws');
+  const endpoint = new URL('/ws', window.MINGLE_BACKEND_ORIGIN); endpoint.protocol = endpoint.protocol === 'https:' ? 'wss:' : 'ws:';
+  socket = new WebSocket(endpoint);
   socket.onmessage = event => {
     const m = JSON.parse(event.data);
+    if (m.type === 'age-required') { stop(); error('Confirme ton âge et accepte les conditions avant de rechercher.'); }
     if (m.type === 'chat' && room && m.room === room && typeof m.text === 'string') {
       const bubble = document.createElement('div');
       bubble.className = m.own ? 'bubble own' : 'bubble';
@@ -119,6 +122,7 @@ function connect() {
   socket.onerror = () => error('Serveur indisponible.');
 }
 $('start').onclick = begin;
+$('adultConfirmed').onchange = () => { if (!$('adultConfirmed').checked) stop(); };
 function applyPrivacy(removeId) {
   const prefs = window.minglePrivacy.get();
   send({ type: 'privacy', hideCountry: prefs.hideCountry });

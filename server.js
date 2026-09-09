@@ -19,6 +19,7 @@ export function countryForRequest(req, env = process.env) {
 }
 
 export function createApp(env = process.env) {
+  if (env.VERCEL) throw new Error('Le serveur de chat nécessite une instance persistante avec disque. Sur Vercel, utiliser npm run build pour publier uniquement l’interface. Voir VERCEL.md.');
   const clients = new Set();
   const waiting = new Set();
   const management = createManagement(env, banIP => {
@@ -26,6 +27,8 @@ export function createApp(env = process.env) {
     return { connected: clients.size, waiting: waiting.size, conversations: [...clients].filter(c => c.peer).length / 2 };
   });
   const files = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/privacy.js': ['privacy.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
+  for (const name of ['config', 'legal']) files[`/${name}.js`] = [`${name}.js`, 'text/javascript'];
+  for (const name of ['terms', 'privacy', 'rules']) { files[`/${name}`] = [`${name}.html`, 'text/html']; files[`/${name}.html`] = files[`/${name}`]; }
   if (management.enabled) {
     files[management.adminPath] = ['admin.html', 'text/html'];
     files[management.adminPath + '/app.js'] = ['admin-app.js', 'text/javascript'];
@@ -35,11 +38,22 @@ export function createApp(env = process.env) {
   const stats = () => { for (const c of clients) send(c, { type: 'stats', online: clients.size }); };
   const server = http.createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Permissions-Policy', 'camera=(self), microphone=(self)');
     res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; media-src 'self' blob:; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
     const path = req.url?.split('?')[0];
     res.setHeader('Cache-Control', 'no-store');
+    // Only the public policy and aggregate page counter are accessible cross-origin.
+    if (['/api/privacy', '/api/visit'].includes(path)) {
+      const expectedOrigin = env.PUBLIC_ORIGIN || `http://${req.headers.host}`;
+      res.setHeader('Vary', 'Origin');
+      if (req.headers.origin === expectedOrigin) res.setHeader('Access-Control-Allow-Origin', expectedOrigin);
+      if (path === '/api/visit' && req.method === 'POST') {
+        if (req.headers.origin !== expectedOrigin) { res.writeHead(403); return res.end(); }
+        management.count('pageviews'); res.writeHead(204); return res.end();
+      }
+    }
     if (path?.startsWith(management.adminPath || '/__disabled')) res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     if (await management.route(req, res, path, ipForRequest(req, env))) return;
     if (req.method !== 'GET') { res.writeHead(405); return res.end(); }
@@ -49,7 +63,7 @@ export function createApp(env = process.env) {
     try {
       let data = await readFile(new URL(`./public/${file[0]}`, import.meta.url));
       if (file[0] === 'admin.html') data = Buffer.from(data.toString().replaceAll('__ADMIN_PATH__', management.adminPath));
-      res.writeHead(200, { 'Content-Type': `${file[1]}; charset=utf-8`, 'Cache-Control': 'no-cache' }); res.end(data);
+      res.writeHead(200, { 'Content-Type': `${file[1]}; charset=utf-8`, 'Cache-Control': file[0].startsWith('admin') ? 'no-store' : 'no-cache' }); res.end(data);
     } catch { res.writeHead(500); res.end('Erreur serveur'); }
   });
   server.requestTimeout = 15000;
@@ -67,7 +81,8 @@ export function createApp(env = process.env) {
     c.peer = null; c.room = null;
     if (peer) { peer.peer = null; peer.room = null; send(peer, { type: 'left' }); }
   }
-  function join(c) {
+  function join(c, message) {
+    if (message.adultConfirmed !== true) { send(c, { type: 'age-required' }); return; }
     if (management.banned(c.ip)) { send(c, { type: 'banned' }); return; }
     if (c.peer || waiting.has(c)) return;
     const candidates = [...waiting].filter(p => p !== c && p.readyState === WebSocket.OPEN && !c.blocked.has(p.id) && !p.blocked.has(c.id));
@@ -84,6 +99,7 @@ export function createApp(env = process.env) {
     c.id = randomUUID(); c.blocked = new Set(); c.alive = true; c.window = Date.now(); c.count = 0;
     clients.add(c);
     management.count('connections');
+    management.recordPeak(clients.size);
     const iceServers = [{ urls: 'stun:stun.l.google.com:19302' }];
     if (env.TURN_SECRET && env.TURN_URLS) {
       const username = `${Math.floor(Date.now() / 1000) + 86400}:${c.id}`;
@@ -108,7 +124,7 @@ export function createApp(env = process.env) {
         const result = management.report(c, m); send(c, { type: 'report-result', ...result });
         if (result.ok) { c.blocked.add(c.peer.id); leave(c); }
       }
-      if (m.type === 'join') join(c);
+      if (m.type === 'join') join(c, m);
       if (m.type === 'leave') leave(c);
       if (m.type === 'block' && c.peer && m.room === c.room) { c.blocked.add(c.peer.id); leave(c); send(c, { type: 'blocked' }); }
       if (!c.peer || m.room !== c.room) return;
@@ -125,7 +141,7 @@ export function createApp(env = process.env) {
     c.on('error', () => {});
     c.on('close', () => { leave(c); clients.delete(c); stats(); });
   });
-  const heartbeat = setInterval(() => { for (const c of clients) { if (!c.alive) c.terminate(); else { c.alive = false; c.ping(); } } }, 30000);
+  const heartbeat = setInterval(() => { if (clients.size) management.recordPeak(clients.size); for (const c of clients) { if (!c.alive) c.terminate(); else { c.alive = false; c.ping(); } } }, 30000);
   heartbeat.unref();
   return { server, close: () => { clearInterval(heartbeat); for (const c of clients) c.terminate(); wss.close(); return new Promise(resolve => server.close(() => { management.close(); resolve(); })); } };
 }

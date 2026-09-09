@@ -4,7 +4,7 @@ test('visitor reports a peer and admin reviews, bans and deletes the report', as
   const contexts = await Promise.all([1, 2, 3].map(() => browser.newContext({ permissions: ['camera', 'microphone'] })));
   const [a, b, admin] = await Promise.all(contexts.map(c => c.newPage()));
   const errors = []; for (const p of [a, b, admin]) p.on('pageerror', e => errors.push(e.message));
-  for (const page of [a, b]) { await page.goto('http://localhost:3100'); await page.locator('#start').click(); }
+  for (const page of [a, b]) { await page.goto('http://localhost:3100'); await page.locator('#adultConfirmed').check(); await page.locator('#start').click(); }
   await expect(a.locator('#remotePanel')).toHaveAttribute('data-state', 'connected', { timeout: 20000 });
   await a.locator('#reportOpen').click(); await a.locator('#reportReason').selectOption({ label: 'Autre' });
   await a.locator('#reportDetails').fill('Test <img src=x onerror=alert(1)>'); await a.locator('#reportSend').click();
@@ -37,4 +37,18 @@ test('privacy choices persist and analytics can be withdrawn', async ({ page }) 
   await expect(page.locator('#analyticsConsent')).toBeChecked(); await expect(page.locator('#hideCountry')).toBeChecked();
   await page.locator('#analyticsConsent').uncheck(); await page.locator('#privacyForm button').click();
   expect(await page.evaluate(() => localStorage.getItem('mingle.visitor'))).toBe(null);
+});
+
+test('admin statistics refresh without overwriting unsaved settings', async ({ page, context }) => {
+  await page.goto(adminPath); await page.locator('#password').fill('test-password-only'); await page.locator('#login button').click();
+  await expect(page.locator('#dashboard')).toBeVisible();
+  await page.locator('#operator').fill('Saisie à conserver');
+  const card = page.locator('#live .card').filter({ hasText: 'Connexions en ligne' }).locator('strong');
+  const before = Number(await card.textContent());
+  const visitor = await context.newPage(); await visitor.goto('/'); await expect(visitor.locator('#start')).toBeEnabled();
+  await page.bringToFront();
+  await expect(card).toHaveText(String(before + 1), { timeout: 12000 });
+  await expect(page.locator('#operator')).toHaveValue('Saisie à conserver');
+  await visitor.close();
+  await expect(card).toHaveText(String(before), { timeout: 12000 });
 });

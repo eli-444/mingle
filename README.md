@@ -1,4 +1,6 @@
-# Mingle
+# Mingle TV
+
+Le nom public est **Mingle TV**, le domaine prévu **mingletv.app**, l’exploitant **Aurora Web & Security** et le contact **aurorawebsec@gmail.com**. L’[audit de publication](AUDIT-PUBLICATION.md) distingue ce qui a été vérifié localement de ce qui reste à configurer. Pour Vercel, suivre [VERCEL.md](VERCEL.md) : l’interface est déployable sur Vercel avec un serveur de chat persistant séparé.
 
 Site de rencontres vidéo aléatoires sans inscription. Interface minimale : deux caméras côte à côte, pays, chat, Rechercher / skip et stop. Un drapeau permet de signaler et une roue dentée ouvre les réglages de confidentialité. La caméra locale est à gauche, celle de l’inconnu à droite.
 
@@ -11,7 +13,7 @@ npm ci
 npm start
 ```
 
-Ouvrir **http://localhost:3000**. Cliquer sur Rechercher puis autoriser caméra et microphone dans le navigateur. Aucun écran intermédiaire. Pour essayer seul, ouvrir une deuxième fenêtre ou un autre navigateur sur cette même adresse. Certains appareils ne permettent pas à deux navigateurs de partager la même caméra. Avec deux appareils différents, utiliser le site publié en HTTPS.
+Ouvrir **http://localhost:3000**. Confirmer avoir au moins 18 ans et accepter les conditions et règles, puis cliquer sur Rechercher et autoriser caméra et microphone dans le navigateur. Cette déclaration n’est pas une vérification d’âge. Pour essayer seul, ouvrir une deuxième fenêtre ou un autre navigateur sur cette même adresse. Certains appareils ne permettent pas à deux navigateurs de partager la même caméra. Avec deux appareils différents, utiliser le site publié en HTTPS.
 
 Ne pas ouvrir directement `public/index.html` : le serveur est indispensable. Ne pas copier `.env.example` pour un simple essai local, car son origine HTTPS d’exemple refuserait la connexion locale.
 
@@ -102,7 +104,7 @@ Ouvrir le site sur deux appareils, l’un en Wi-Fi et l’autre en réseau mobil
 
 Les tests locaux ont été exécutés avec des caméras simulées sous Edge. Ils ne remplacent pas ce test de réseau : aucun hébergement public ni relais réel n’a été configuré ou validé dans ce projet.
 
-Les règles et informations de confidentialité sont accessibles par la roue dentée. L’administration permet désormais la modération a posteriori des signalements et les blocages IP temporaires. Elle ne surveille pas les vidéos et ne vérifie pas l’âge. Compléter dans le panel le nom de l’exploitant, le contact et l’hébergement, puis valider les bases légales et l’encadrement des transferts avant l’ouverture publique. Les textes fournis ne constituent pas une certification de conformité.
+Les conditions, règles et informations de confidentialité sont accessibles depuis l’accueil et la roue dentée, aux adresses `/terms`, `/rules` et `/privacy`. L’administration permet la modération a posteriori des signalements et les blocages IP temporaires. Elle ne surveille pas les vidéos et ne vérifie pas l’âge. Le nom de l’exploitant et le contact sont préremplis ; compléter son adresse, l’hébergement et les transferts, puis valider les bases légales avant l’ouverture publique. Les textes fournis ne constituent pas une certification de conformité. Les copies anglaises renommées restent dans `docs/legal-drafts/` et ne sont pas publiées.
 
 ## Tester et modifier
 

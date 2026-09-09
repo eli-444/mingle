@@ -1,0 +1,336 @@
+DRAFT - Rebranded user-provided text. Features, links and legal clauses require review. Do not publish as-is. See public/*.html for the adapted French pages.
+
+Privacy Policy
+Introduction
+We are committed to safeguarding the privacy of our service users.
+This policy applies where we are acting as a data controller with respect to the personal data of our service users; in other words, where we determine the purposes and means of the processing of that personal data.
+By accessing or using the Service, you acknowledge and agree to the processing of your personal data as described in this Privacy Policy, which may be based on different legal grounds depending on the purpose of processing.
+This policy describes:
+What data we collect
+How we use your data
+How we share and disclose your data
+How we transfer data to other countries
+How we retain your data
+How to delete your data
+How we protect your data
+How to report security vulnerabilities in our system
+Changes to our Privacy Policy
+Cookies policy
+External URLs policy
+Age-assurance and minors’ data
+Special note for parents
+Special note for users under 18
+How to contact us
+How we use your personal data
+We may collect, process, retain, and transfer different kinds of personal data:
+Type / Category
+Source
+Data
+Client data
+Internet connection
+IP address
+Country code (identified by IP address)
+Browser data
+Internet browser
+Browser type
+Browser version
+Operating system and platform
+Browser plug-in types and versions
+Сameras and microphones list
+Timezone
+Browser language / locale
+Internal data
+Our system / database
+Internal user ID
+Facebook data
+Facebook social network
+ID
+Name
+Gender
+Birthday date
+Location (country code and city)
+Hometown
+E-mail
+VKontakte data
+VKontakte social network
+ID
+Name
+Gender
+Birthday date
+Country
+City
+E-mail
+Google data
+Google account
+ID
+Name
+E-mail
+Age screening data
+User
+Declared age
+Declared age category
+Mobile platform age-signals data
+Google Play, Apple App Store
+Age category / age signal (e.g., "18+")
+Third-party age-verification data
+Third-party age-verification services
+Age verification result (pass/fail)
+Verified age category (e.g., "18+ confirmed")
+Device data
+Mobile device
+Manufacturer
+Model
+OS version
+Internet connection info
+Device ID (Serial number, IMEI number, MAC address or phone number)
+OS language / locale
+Videochat data
+User
+Video/audio stream (processed in real time; not stored)
+Gender
+Search country
+Chat messages
+Picture
+Settings data
+User
+Locale settings
+Translation settings
+Transaction data
+PayPal, Google Play
+Transaction ID or purchase token
+Order details (order ID, product ID, price, order date, etc.)
+PayPal payer ID
+PayPal payer E-mail
+PayPal payer name
+PayPal payer country code
+Correspondence data
+User, service contact forms
+E-mail
+Message
+Metadata
+Files and attachments
+Usage data
+Internet connection, HTTP protocol, internet browser
+Google Analytics data (shortened IP address & website activity)
+Cloudflare data (IP address & traffic logs)
+See “See Section 3” below
+
+We may use with the following purposes:
+Purpose
+Type / Category
+To display our website and maintain the connection with our application
+Client data
+To properly run our website in different browsers and on different platforms
+Client data
+Browser data
+To properly run our application on different versions of Android
+Client data
+Device data
+To register a new user or log in registered user on our website
+Client data
+Internal data
+Facebook data
+VKontakte data
+Google data
+To register a new user or log in registered user in our application
+Client data
+Internal data
+Facebook data
+VKontakte data
+Google data
+Device data
+To perform age-assurance / age-verification and to prevent access to the Service by users under 18 years of age (including blocking registration and/or access where age signals indicate a minor).
+Facebook data
+VKontakte data
+Age screening data
+Mobile platform age-signals data
+Third-party age-verification data
+To process and deliver user orders, manage payments, fees, charges
+Client data
+Transaction data
+To communicate with our users
+Client data
+Correspondence data
+To enable our users to participate in video chat
+Client data
+Internal data
+Browser data
+Facebook data
+VKontakte data
+Google data
+Device data
+Videochat data
+Settings data
+Usage data
+To grant personalized content for our users
+Client data
+Internal data
+Facebook data
+VKontakte data
+Device data
+To properly administer and protect our system
+Client data
+Browser data
+Device data
+To improve our service and user experiences
+Client data
+Browser data
+Device data
+Usage data
+The Facebook Platform Data includes an essential amount of the user's personal data. Below, we outline in more detail the purposes of this data usage. We might use the Facebook Platform Data for the following:
+Purpose
+Type / Category
+To authenticate users
+To block offending users from using the service
+User ID (unique for our service, part of Public Profile, auto granted by Facebook)
+To match the Facebook and VK logins with the purpose of assigning them to the same account
+E-mail (part of Public Profile, auto granted by Facebook)
+To provide a personalized user experience (user search)
+To personalize user page in our service
+Gender
+Birthday date
+Location (country code and city)
+To personalize user page in our service
+Name (first and last name, part of Public Profile, auto granted by Facebook)
+Picture (part of Public Profile, auto granted by Facebook)
+We may process any of your personal data identified in this policy where necessary for the establishment, exercise or defense of legal claims, whether in court proceedings or in an administrative or out-of-court procedure. The legal basis for this processing is our legitimate interests, namely the protection and assertion of our legal rights, your legal rights and the legal rights of others.
+We may process any of your personal data identified in this policy where necessary for the purposes of obtaining or maintaining insurance coverage, managing risks, or obtaining professional advice. The legal basis for this processing is our legitimate interests, namely the proper protection of our business against risks.
+In addition to the specific purposes for which we may process your personal data set out in this Section 2, we may also process any of your personal data where such processing is necessary for compliance with a legal obligation to which we are subject, or in order to protect your vital interests or the vital interests of another natural person.
+Please do not supply any other person's personal data to us, unless we prompt you to do so.
+Providing your personal data to others
+We may disclose your personal data to our insurers and/or professional advisers insofar as reasonably necessary for the purposes of obtaining or maintaining insurance coverage, managing risks, obtaining professional advice, or the establishment, exercise or defense of legal claims, whether in court proceedings or in an administrative or out-of-court procedure.
+Financial transactions relating to our service may be handled by our payment services providers, PayPal, Google, VK. We will share transaction data with our payment service providers only to the extent necessary for the purposes of processing your payments, refunding such payments and dealing with complaints and queries relating to such payments and refunds.
+In addition to the specific disclosures of personal data set out in this Section 3, we may disclose your personal data where such disclosure is necessary for compliance with a legal obligation to which we are subject, or in order to protect your vital interests or the vital interests of another natural person. We may also disclose your personal data where such disclosure is necessary for the establishment, exercise or defense of legal claims, whether in court proceedings or in an administrative or out-of-court procedure.
+We may disclose relevant information to law enforcement authorities or appropriate hotlines where we reasonably suspect child sexual abuse material (CSAM), child exploitation, or other serious illegal activity on or through the Service.
+Our service may require a direct connection to be made between your device and the other user's device. To do this, it is necessary to make your IP address available to the other user's device, although it is not shown to the other user by service’s interface. This is a necessary part of how any peer-to-peer system functions.
+We use the functions of the web analytics service Google Analytics on our website to analyse user behaviour and to optimise our website. The provider of this service is Google Ireland Limited, Barrow Street, Dublin 4, Ireland ("Google").
+
+Within the scope of this service, data is transferred to the US or such a transfer cannot be excluded.
+
+Google Analytics uses cookies that enable an analysis of the use of our website.
+
+In general, information about your use of the website is transferred to a Google server and stored there, such as the type and version of browser you used, the operating system you used, the site you visited prior to accessing our site, the host name of the device (IP address) you used to access the site, and the time of your server request.
+
+At our request, Google will use this information to analyse the use of our website, to create reports on the activities within our website and to render additional services related to the use of our website and of the internet. According to Google, the IP address submitted by your browser will not be added to other data held by Google.
+
+During the website visit, the following data is collected:
+
+the pages you call up, your "click path"
+Achievement of "website goals" (conversions, e.g. newsletter registrations, downloads, purchases)
+Your user behavior (for example clicks, duration of stay, bounce rates)
+Your approximate location (region)
+Your IP address (in shortened form)
+technical information about your browser and the end devices you use (e.g. language settings, screen resolution)
+Your internet provider
+the referrer URL (via which website / via which advertising medium you came to our website)
+The data about the use of our website is immediately deleted after expiration of the storage limits that we have set. Google Analytics gives us the following options for the storage limits: 14 months, 26 months, 38 months, 50 months or no automatic deletion. You can ask us any time for the current storage limit that we have set.
+
+The processing of your data using Google Analytics is subject to your explicit consent in the sense of Art 6 paragraph 1 lit. a of the GDPR. You can revoke your consent at any time with effect for the future.
+
+You can also block the collection of data by downloading and installing the browser plugin available through the link below: https://tools.google.com/dlpage/gaoptout
+
+You can find out exactly where Google data centres are located here: https://www.google.com/about/datacenters/inside/locations/
+
+For more information about how Google uses your data, and about options for settings and withdrawal of consent, refer to the Google Privacy Policy at https://policies.google.com/privacy
+
+On our website Cloudflare is used as a so-called content delivery network (CDN). Cloudflare is a service of Cloudflare Inc., 101 Townsend Street, San Francisco, California 94107, USA, ("Cloudflare").
+
+Within the scope of this service, data is transferred to the US or such a transfer cannot be excluded.
+
+A CDN is a service that helps us to provide content from our website, especially large media files, such as images, by using regional and Internet-connected servers to be delivered faster. Delivering content through servers near you reduces average website load times.
+
+Cloudflare contributes both web optimization and security services. Cloudflare blocks threats and limits misuse of server resources and bandwidth. Our website is significantly more powerful and less vulnerable to spam or other attacks thanks to Cloudflare.
+
+Cloudflare uses cookies and processes data of our website users.
+
+If you visit our website, your requests will be directed by the server of Cloudflare. In this case, statistical access data is collected when visiting our website.
+
+Access data includes:
+
+your IP address,
+the addresse(s) of our website you have visited,
+type and version of the internet browser you are using,
+the operating system you are using,
+the website from which you have switched to our website (referrer URL),
+the time of your stay on our website and
+the frequency of calling our websites.
+This data helps Cloudflare in particular to detect new threats and to ensure a high security standard for the operation of our website.
+
+Your data is processed to maintain the security and functionality of the CDN and to optimize our loading times. The use of cookies by Cloudflare is done for security reasons to ensure the trustworthiness of an end device and is absolutely necessary for the security function.
+
+Cloudflare keeps data logs only as long as necessary and this data is deleted within 24 hours in most cases. However, there is information that Cloudflare keeps indefinitely as part of its permanent logs in order to improve Cloudflare's overall performance. However, this data is not personal and is anonymized by Cloudflare. What data is involved can be found at https://www.cloudflare.com/application/privacypolicy/
+
+International transfers of your personal data
+The hosting facilities for our service are situated in Germany (European Economic Area).
+Users of our service are located in multiple countries, including the European Economic Area. We have developed data practices designed to assure information is appropriately protected but we ask you to be aware of the privacy and data protection laws in the jurisdiction in which you reside. As otherwise stated in this policy, you acknowledge that, the ultimate responsibility for the information you choose to share is yours.
+You acknowledge that personal data that you submit for publication through our service may be available, via the internet, around the world. We cannot prevent the use (or misuse) of such personal data by others.
+Retaining and deleting personal data
+Personal data that we process for any purpose or purposes shall not be kept for longer than is necessary for that purpose or those purposes.
+We will not retain your complete message data (message log). We store none outgoing or incoming messages, and these data cannot be retrieved or restored. We will retain specific messages in ban data for bans related to inappropriate behavior in the text chat.
+We will retain your ban data as long as it is necessary to maintain the ban technically for a determined period. We will not keep user image after ban expiration, but will retain a record about this specific ban.
+We will not retain your communication data. We store none information related to with whom and when you communicated, and such information cannot be retrieved or restored.
+Notwithstanding the other provisions of this Section 5, we may retain your personal data where such retention is necessary for compliance with a legal obligation to which we are subject, or in order to protect your vital interests or the vital interests of another natural person.
+You have the option to delete your profile within our Android application through the designated in-app feature, available in the profile settings section. To access your profile settings, tap the button located to the right of your avatar in your profile. Upon the deletion of your account, it will become immediately unavailable to the public. Any data associated with your profile, including photos, messages, subscriber list, etc., will also become inaccessible. However, this data will be physically removed from our servers 30 days following the deletion of your profile.
+You may submit a request to delete your data by using the form at https://mingletv.app/account-deletion/. After proper verification procedures, we will process your request in accordance with applicable laws as soon as practicable.
+How we protect your personal data
+We employ proper technical and physical measures to protect the personal data of our users from loss, destruction, change, unauthorized access, disclosure, or any other illegal forms of processing.
+We employ a modern means of protection for the personal data of all users according to the current state of the industry. We use a secure server software (SSL) to encrypt user data before it is sent to us, and our database is hosted in a secure data center.
+Only authorized personnel have access to user data.
+Security vulnerabilities reporting
+We pay much attention to the proper security of personal data. Despite this, a weak spot may exist or develop. If you believe you have discovered a security or privacy vulnerability when using our services, please send us an email at aurorawebsec@gmail.com with a detailed description. We will contact you if we need more information.
+Amendments
+We may update this policy from time to time by publishing a new version on our website.
+You should check this page occasionally to ensure you are happy with any changes to this policy.
+About cookies
+A cookie is a file containing an identifier (a string of letters and numbers) that is sent by a web server to a web browser and is stored by the browser. The identifier is then sent back to the server each time the browser requests a page from the server.
+Cookies may be either "persistent" cookies or "session" cookies: a persistent cookie will be stored by a web browser and will remain valid until its set expiry date, unless deleted by the user before the expiry date; a session cookie, on the other hand, will expire at the end of the user session, when the web browser is closed.
+Cookies do not typically contain any information that personally identifies a user, but personal information that we store about you may be linked to the information stored in and obtained from cookies.
+Cookies that we use
+We use cookies for the following purposes:
+(a) authentication - we use cookies to identify you when you visit our website and as you navigate our website;
+(b) analysis - we use cookies to help us to analyze the use and performance of our website and services;
+Cookies used by our service providers
+Our service providers use cookies and those cookies may be stored on your device when you visit our website.
+We use Google Analytics to analyze the use of our website. Google Analytics gathers information about website use by means of cookies. The information gathered relating to our website is used to create reports about the use of our website. Google's privacy policy is available at: https://policies.google.com/privacy .
+We use Facebook Like Button widget to share the information about our service on Facebook. When visiting our website containing such a widget, your browser will establish a direct link with the servers operated by Facebook; as a result the content of the widget will be transferred to your browser and embedded in the website being shown. If you visit our website whilst signed into your Facebook user account, information concerning your visit will be transferred to Facebook. Facebook can assign your visit to our website to your user account. Information arising from interaction with the Facebook widget (such as by clicking the Facebook “like” button or by leaving a comment) will be directly transferred to and stored by Facebook. To prevent this, you must log out of your Facebook account before visiting our website. Please refer to Facebook’s privacy policy (https://www.facebook.com/privacy/policy/) for more information on: the purpose and scope of data collection and data analysis undertaken by Facebook, your rights, how to modify settings and how to protect your privacy.
+We use Twitter Tweet Button widget to share the information about our service on Twitter. Twitter uses cookies for purposes described at https://help.x.com/rules-and-policies/x-cookies. You can view the privacy policy of Twitter provider at https://x.com/privacy.
+Managing cookies
+Most browsers allow you to refuse to accept cookies and to delete cookies. The methods for doing so vary from browser to browser, and from version to version.
+Blocking all cookies will have a negative impact upon the usability of many websites.
+If you block cookies, you will not be able to use all the features on our website.
+External URLs
+We reserve the right to place external links to websites and third party goods throughout our service.
+We attempt to always provide links and URLs to respected websites, however, we do not accept responsibility for any contents, security, or actions taken on such websites.
+When you navigate to any third party website, any personal data that you provide is managed exclusively by the privacy policy of that particular website and we do not assume any responsibility for the data you decide to provide.
+Age-assurance and minors’ data
+The Service is intended exclusively for adults and is not designed for, directed to, or intended for use by anyone under 18 years of age. We do not knowingly collect or process personal data from minors.
+To enforce our minimum-age policy and to prevent minors from accessing or registering for the Service, we may collect and use age-assurance and age-verification information from a variety of sources. Depending on how you access or use the Service, this may include, without limitation:
+
+the age or age bracket you provide when completing age-screening/age-gate steps on our Website or in our mobile application;
+age-related details or categories obtained from a linked third-party or social network account, where you choose to log in or connect such account;
+age signals or age categories made available by mobile operating systems and/or app marketplaces through their APIs;
+results from external age-verification or age-assurance providers, where we use such services.
+If these measures indicate or reasonably suggest that a user is under 18, we may deny, restrict, or block access to the Service at the outset, including preventing such user from registering for or creating a User Account. Any age-assurance information we process is used solely for enforcing our minimum-age requirement and for child-safety purposes as described in this Privacy Policy.
+
+Special note for parents
+If you are a parent or legal guardian and you believe that your child has created an account, accessed, or used the Service, please contact us immediately so that we can promptly review the situation and delete the child’s account and any associated personal data. Where appropriate, we may also take steps to prevent further access by the child.
+While we take reasonable measures to restrict access to the Service by minors, we encourage parents and legal guardians to supervise their children’s online activities and to use parental control tools and other age-appropriate safety features provided by device manufacturers, operating system providers, app marketplaces, and online services to help prevent minors from accessing adult-only platforms such as ours.
+Special note for users under 18
+This Service is only for adults. If you are under 18, you are not allowed to use the Service or create an account. Please stop using the Service and do not provide any personal information to us. Do not attempt to bypass age checks.
+If you believe you have already created an account or shared information here, please ask your parent or legal guardian to contact us so we can remove your account and delete any personal data associated with it.
+Contact
+If you have any questions about this policy, please contact us by contact form: https://mingletv.app/support.
+Facebook
+Instagram
+YouTube
+Twitter
+Pinterest
+TikTok
+Rules
+Terms
+Privacy
+Refund
+Contacts
+© 2026 Mingle TV, Aurora Web & Security
+[ADRESSE DE L’EXPLOITANT À COMPLÉTER]
+Mingle TV Video Chat

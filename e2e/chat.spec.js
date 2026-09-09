@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 
 async function start(page) {
   await page.goto('http://localhost:3100');
+  await page.locator('#adultConfirmed').check();
   await page.getByRole('button', { name: 'Rechercher' }).click();
 }
 test('one click connects two cameras, then skip starts another search', async ({ browser }) => {
@@ -69,4 +70,13 @@ test('camera denial permits retry without leaving search stuck', async ({ page }
   await expect(page.locator('#error')).toContainText('Autorise');
   await expect(page.locator('#start')).toBeEnabled();
   await expect(page.locator('#start')).toHaveText('Rechercher');
+});
+
+test('age declaration is required before asking for the camera', async ({ page }) => {
+  await page.goto('/'); await page.locator('#start').click();
+  await expect(page.locator('#error')).toContainText('18 ans');
+  expect(await page.locator('#localVideo').evaluate(video => video.srcObject)).toBe(null);
+  await page.getByRole('link', { name: 'Conditions d’utilisation', exact: true }).click();
+  await expect(page).toHaveTitle('Conditions d’utilisation — Mingle TV');
+  await expect(page.locator('[data-policy="operator"]')).toHaveText('Aurora Web & Security');
 });

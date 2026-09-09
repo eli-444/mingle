@@ -16,7 +16,7 @@ async function setup(t, env = {}) {
       throw new Error(`Message absent : ${type}`);
     };
     const hello = await next('hello');
-    return { ws, inbox, next, hello, send: m => ws.send(JSON.stringify(m)), join: () => ws.send(JSON.stringify({ type: 'join' })) };
+    return { ws, inbox, next, hello, send: m => ws.send(JSON.stringify(m)), join: () => ws.send(JSON.stringify({ type: 'join', adultConfirmed: true })) };
   }
   return { base, client };
 }
@@ -26,6 +26,31 @@ test('serves the application, health and security headers', async t => {
   assert.match(page.headers.get('content-security-policy'), /frame-ancestors 'none'/);
   assert.equal((await fetch(base + '/.env')).status, 404);
   assert.deepEqual(await (await fetch(base + '/health')).json(), { ok: true });
+});
+
+test('requires an adult declaration before entering the matching queue', async t => {
+  const { client } = await setup(t); const a = await client();
+  a.send({ type: 'join' }); await a.next('age-required');
+  a.join(); await a.next('waiting');
+});
+
+test('legal pages expose the Mingle TV documents without serving drafts', async t => {
+  const { base } = await setup(t);
+  for (const path of ['/terms', '/privacy', '/rules']) {
+    const response = await fetch(base + path); assert.equal(response.status, 200);
+    const content = await response.text(); assert.match(content, /Mingle TV/); assert.doesNotMatch(content, /OmeTV|ome\.tv|Bad Kitty/i);
+  }
+  assert.equal((await fetch(base + '/docs/legal-drafts/terms-mingle-tv.txt')).status, 404);
+});
+
+test('public split-hosting endpoints allow only the configured frontend origin', async t => {
+  const { base } = await setup(t, { PUBLIC_ORIGIN: 'https://mingletv.app' });
+  const policy = await fetch(base + '/api/privacy', { headers: { Origin: 'https://mingletv.app' } });
+  assert.equal(policy.headers.get('access-control-allow-origin'), 'https://mingletv.app');
+  const foreign = await fetch(base + '/api/privacy', { headers: { Origin: 'https://evil.example' } });
+  assert.equal(foreign.headers.get('access-control-allow-origin'), null);
+  assert.equal((await fetch(base + '/api/visit', { method: 'POST', headers: { Origin: 'https://evil.example' } })).status, 403);
+  assert.equal((await fetch(base + '/api/visit', { method: 'POST', headers: { Origin: 'https://mingletv.app' } })).status, 204);
 });
 test('pairs two strangers, isolates messages, relays signaling and handles next', async t => {
   const { client } = await setup(t); const a = await client(); const b = await client(); const c = await client();
@@ -61,7 +86,7 @@ test('rejects cross-origin connections', async t => {
 test('malformed input is ignored and joining needs only one request', async t => {
   const { client } = await setup(t); const a = await client(); const b = await client();
   a.ws.send('not json'); a.ws.send('null'); b.join(); await b.next('waiting');
-  a.send({ type: 'join' }); await a.next('matched'); await b.next('matched');
+  a.send({ type: 'join', adultConfirmed: true }); await a.next('matched'); await b.next('matched');
 });
 test('country lookup ignores spoofed headers unless proxy trust is enabled', () => {
   const req = { socket: { remoteAddress: '127.0.0.1' }, headers: { 'x-real-ip': '8.8.8.8' } };

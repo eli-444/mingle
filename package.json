@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node scripts/build-frontend.js",
     "start": "node --env-file-if-exists=.env server.js",
     "dev": "node --watch --env-file-if-exists=.env server.js",
-    "test": "node --test --test-isolation=none test/server.test.js test/admin.test.js",
+    "test": "node --test --test-isolation=none test/server.test.js test/admin.test.js test/frontend.test.js",
     "test:e2e": "playwright test",
     "setup:admin": "node scripts/setup-admin.js"
   },
