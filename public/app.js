@@ -27,7 +27,7 @@ function error(text = '') { $('error').textContent = text; $('error').hidden = !
 function closePeer() {
   clearTimeout(connectionTimer); room = null; pendingCandidates = [];
   if (peer) { peer.ontrack = peer.onicecandidate = peer.onconnectionstatechange = null; peer.close(); peer = null; }
-  $('remoteVideo').srcObject = null; $('playRemote').hidden = true; $('remoteCountry').hidden = true;
+  $('remoteVideo').srcObject = null; $('remoteCountry').hidden = true;
   $('messages').replaceChildren(); $('message').value = ''; controls();
   if ($('reportDialog').open && reportedRoom) { $('reportSend').disabled = true; $('reportNotice').textContent = 'The conversation has ended.'; }
 }
@@ -68,7 +68,7 @@ async function matched(m) {
   pc.ontrack = event => {
     if (peer !== pc) return;
     $('remoteVideo').srcObject = event.streams[0] || new MediaStream([event.track]);
-    $('remoteVideo').play().catch(() => { if (peer === pc) $('playRemote').hidden = false; });
+    $('remoteVideo').play().catch(() => {});
   };
   pc.onconnectionstatechange = () => {
     if (peer !== pc) return;
@@ -160,6 +160,5 @@ $('chatForm').onsubmit = event => {
   const text = $('message').value.trim();
   if (room && text && send({ type: 'chat', room, text })) { $('message').value = ''; controls(); }
 };
-$('playRemote').onclick = async () => { try { await $('remoteVideo').play(); $('playRemote').hidden = true; } catch { error('Playback unavailable. Try the next person.'); } };
 window.addEventListener('pagehide', () => { stop(); socket?.close(); });
 $('ageDialog').showModal();

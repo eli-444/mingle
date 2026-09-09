@@ -18,7 +18,7 @@ test('Vercel build rejects unsafe backend origins and exports public files only'
   await assert.rejects(buildFrontend({ VERCEL: '1', MINGLE_BACKEND_ORIGIN: 'http://localhost:3100' }));
   await buildFrontend({ MINGLE_BACKEND_ORIGIN: 'https://api.mingletv.app', TURN_SECRET: 'must-not-export', ADMIN_PASSWORD_HASH: 'must-not-export' });
   const files = await readdir(new URL('../dist/', import.meta.url));
-  assert.deepEqual(files.sort(), ['app.js', 'config.js', 'index.html', 'legal.js', 'privacy.html', 'privacy.js', 'rules.html', 'style.css', 'terms.html']);
+  assert.deepEqual(files.sort(), ['app.js', 'config.js', 'favicon.svg', 'index.html', 'legal.js', 'privacy.html', 'privacy.js', 'rules.html', 'style.css', 'terms.html']);
   for (const file of files) {
     const content = await readFile(new URL('../dist/' + file, import.meta.url), 'utf8');
     assert.doesNotMatch(content, /must-not-export|__ADMIN_PATH__/);

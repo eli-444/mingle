@@ -17,7 +17,7 @@ export async function buildFrontend(env = process.env) {
   await rm(output, { recursive: true, force: true }); await mkdir(output);
   const websocket = backend.origin.replace(/^http/, 'ws');
   const csp = `default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' ${backend.origin} ${websocket}; media-src 'self' blob:; img-src 'self' data:; base-uri 'none'; form-action 'self'; object-src 'none'`;
-  const files = ['index.html', 'terms.html', 'privacy.html', 'rules.html', 'app.js', 'privacy.js', 'legal.js', 'style.css'];
+  const files = ['favicon.svg', 'index.html', 'terms.html', 'privacy.html', 'rules.html', 'app.js', 'privacy.js', 'legal.js', 'style.css'];
   for (const file of files) {
     let data = await readFile(new URL('../public/' + file, import.meta.url), 'utf8');
     if (file.endsWith('.html')) data = data.replace(/(<meta charset="[^"]+">)/i, `$1<meta http-equiv="Content-Security-Policy" content="${csp}">`);
@@ -45,7 +45,7 @@ export async function buildSupabaseFrontend(env = process.env) {
   if (dirname(output) !== resolve(root) || (await lstat(output).catch(e => { if (e.code !== 'ENOENT') throw e; return null; }))?.isSymbolicLink()) throw new Error('Répertoire de sortie non sûr.');
   await rm(output, { recursive: true, force: true }); await mkdir(output);
   const csp = `default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' ${url.origin} ${url.origin.replace('https:', 'wss:')}; media-src 'self' blob:; img-src 'self' data:; base-uri 'none'; form-action 'self'; object-src 'none'`;
-  for (const file of ['index.html', 'terms.html', 'privacy.html', 'rules.html', 'app.js', 'privacy.js', 'legal.js', 'style.css']) {
+  for (const file of ['favicon.svg', 'index.html', 'terms.html', 'privacy.html', 'rules.html', 'app.js', 'privacy.js', 'legal.js', 'style.css']) {
     let content = await readFile(new URL('../public/' + file, import.meta.url), 'utf8');
     if (file.endsWith('.html')) content = content.replace(/(<meta charset="[^"]+">)/i, `$1<meta http-equiv="Content-Security-Policy" content="${csp}">`);
     if (file === 'index.html') content = content.replace('<script src="/app.js"', '<script src="/transport.js" defer></script><script src="/app.js"');
