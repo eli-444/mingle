@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 
 async function start(page) {
   await page.goto('http://localhost:3100');
-  await page.locator('#adultConfirmed').check();
-  await page.getByRole('button', { name: 'Rechercher' }).click();
+  await page.locator('#adultConfirmed').check(); await page.locator('#ageContinue').click();
+  await page.getByRole('button', { name: 'Search' }).click();
 }
 test('one click connects two cameras, then skip starts another search', async ({ browser }) => {
   const aContext = await browser.newContext({ permissions: ['camera', 'microphone'] });
@@ -40,7 +40,7 @@ test('one click connects two cameras, then skip starts another search', async ({
   await a.locator('#stop').click();
   expect(await a.evaluate(() => window.testTracks.every(t => t.readyState === 'ended'))).toBe(true);
   expect(await a.locator('#localVideo').evaluate(v => v.srcObject)).toBe(null);
-  await expect(a.locator('#start')).toHaveText('Rechercher');
+  await expect(a.locator('#start')).toHaveText('Search');
   await expect(a.locator('#stop')).toBeDisabled();
   await expect(b.locator('#remotePanel')).toHaveAttribute('data-state', 'idle');
   expect(errors).toEqual([]);
@@ -67,16 +67,16 @@ test('camera denial permits retry without leaving search stuck', async ({ page }
     navigator.mediaDevices.getUserMedia = async () => { throw new DOMException('Denied', 'NotAllowedError'); };
   });
   await start(page);
-  await expect(page.locator('#error')).toContainText('Autorise');
+  await expect(page.locator('#error')).toContainText('Allow');
   await expect(page.locator('#start')).toBeEnabled();
-  await expect(page.locator('#start')).toHaveText('Rechercher');
+  await expect(page.locator('#start')).toHaveText('Search');
 });
 
 test('age declaration is required before asking for the camera', async ({ page }) => {
   await page.goto('/'); await page.locator('#start').click();
-  await expect(page.locator('#error')).toContainText('18 ans');
+  await expect(page.locator('#error')).toContainText('18');
   expect(await page.locator('#localVideo').evaluate(video => video.srcObject)).toBe(null);
-  await page.getByRole('link', { name: 'Conditions d’utilisation', exact: true }).click();
-  await expect(page).toHaveTitle('Conditions d’utilisation — Mingle TV');
+  await page.getByRole('link', { name: 'Terms of Use', exact: true }).click();
+  await expect(page).toHaveTitle('Terms of Use — Mingle TV');
   await expect(page.locator('[data-policy="operator"]')).toHaveText('Aurora Web & Security');
 });

@@ -1,54 +1,68 @@
-# Publier Mingle TV avec Vercel
+# Publier Mingle TV sur Vercel + Supabase
 
-Le dépôt prépare désormais **le frontend sur Vercel**, relié directement à **un serveur Node persistant** pour le chat, les statistiques et l’administration. Un push seul ne configure ni ce serveur, ni sa base, ni le relais vidéo.
+Le frontend et les API sont hébergés dans **un seul projet Vercel**. Supabase gère les sessions, les duos, les signalements, les statistiques et les canaux privés. Aucun serveur Node permanent ni fichier SQLite n'est nécessaire dans ce mode. Les messages et la signalisation passent par Realtime ; la vidéo passe par WebRTC, directement ou via TURN.
 
-Vercel accepte maintenant les WebSockets, mais ses connexions peuvent changer d’instance et s’arrêtent à la durée maximale d’une Function. Les files, la présence et les sessions de cette application sont en mémoire ; sa base SQLite est un fichier local. L’exécution de ce serveur dans une Function perdrait ou séparerait ces données. Voir [WebSockets et état persistant](https://vercel.com/docs/functions/websockets) et [SQLite sur Vercel](https://vercel.com/kb/guide/is-sqlite-supported-in-vercel), vérifiés le 9 septembre 2026.
+## 1. Supabase
 
-## 1. Serveur de chat et administration
+La migration principale `supabase/migrations/202609090001_mingle.sql` a été importée dans ton projet et sa connexion a été vérifiée.
 
-Utiliser le Dockerfile sur une seule instance sans mise en veille, avec HTTPS, WebSockets et un disque persistant monté sur `/app/data`. Le guide VPS, Caddy et coturn du README reste applicable. `api.mingletv.app` est une proposition de sous-domaine à créer, pas un service déjà déployé.
+- Garder **Authentication → Sign In / Providers → Anonymous Sign-Ins** activé : aucune inscription visible.
+- Dans **Realtime**, n'autoriser que les canaux privés. Sur un projet partagé, vérifier les autres politiques de `realtime.messages` : elles ne doivent pas accorder un accès plus large.
+- Activer **pg_cron / Cron**.
+- Dans SQL Editor, exécuter **`supabase/cleanup-anonymous.sql`**, puis **`supabase/enable-cron.sql`**. Ces réglages du dashboard n'ont pas été appliqués automatiquement par le raccordement du code.
+- Vérifier les deux tâches et leurs dernières exécutions dans Cron : `mingle-cleanup` chaque minute et `mingle-cleanup-anonymous` chaque heure.
 
-Variables du serveur :
+Les identités anonymes sont nécessaires aux autorisations privées. Voir [Auth anonyme](https://supabase.com/docs/guides/auth/auth-anonymous) et [autorisation Realtime](https://supabase.com/docs/guides/realtime/authorization).
 
-```dotenv
-PUBLIC_ORIGIN=https://mingletv.app
-ADMIN_ORIGIN=https://api.mingletv.app
-DATA_FILE=/app/data/mingle.sqlite
-ADMIN_PATH=<chemin généré localement>
-ADMIN_PASSWORD_HASH=<hash généré localement>
-TURN_URLS=<URLs du relais réellement installé>
-TURN_SECRET=<secret du relais>
-RELAY_ONLY=true
-```
+## 2. Projet Vercel et variables
 
-`ADMIN_ORIGIN` est l’origine où tu ouvres le panel. Si toute l’application est hébergée sur un seul domaine, elle doit être égale à `PUBLIC_ORIGIN` ou rester vide. Ne pas recopier la valeur d’exemple `api.mingletv.app` sur un déploiement à domaine unique.
+Importer le dépôt GitHub qui contient **ce** `package.json`, `api/handler.js` et `vercel.json`. Si le dépôt contient lui-même un sous-dossier `mingle`, choisir ce sous-dossier comme **Root Directory** ; sinon, laisser la racine.
 
-`TRUST_PROXY=true` uniquement derrière un proxy de confiance qui **remplace** `X-Real-IP`, avec le port Node inaccessible directement depuis Internet. Le navigateur Vercel contacte le serveur de chat directement : ne pas ajouter de réécriture Vercel pour `/ws` ou l’administration.
+- Framework : **Other** ; Node.js : **24.x**.
+- Build : **`npm run build`** ; sortie : **`dist`**.
+- Les fonctions `api/` sont déployées avec le site, sans serveur à démarrer.
 
-Le compteur en ligne agrège les onglets de chat reliés à cette instance, même avant l’activation de la caméra. Les pages vues incluent l’accueil et les trois pages légales avec JavaScript. Les stats sont visibles dans le panel du backend, pas dans un tableau Vercel.
+Dans **Settings → Environment Variables**, renseigner pour **Production** :
 
-## 2. Interface sur Vercel
+| Variable | Valeur |
+| --- | --- |
+| `SUPABASE_URL` | Valeur de ton `.env` |
+| `SUPABASE_ANON_KEY` | Clé publique de ton `.env` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clé serveur de ton `.env` — secrète. Avec les nouvelles clés Supabase, `SUPABASE_SECRET_KEY` est aussi accepté. |
+| `SERVER_SECRET` | Valeur générée dans ton `.env` — secrète et stable |
+| `ADMIN_PASSWORD_HASH` | Valeur complète de ton `.env`, avec le `:` |
+| `PUBLIC_ORIGIN` | `https://mingletv.app` (recommandé en production ; les Preview Vercel sont aussi reconnues automatiquement par leur propre origine) |
+| `ADMIN_ORIGIN` | `https://adminsecret.mingletv.app` |
+| `RELAY_ONLY` | `false`, ou `true` après configuration TURN |
+| `TURN_URLS`, `TURN_SECRET` | À ajouter si un relais coturn est configuré |
 
-Importer le dépôt, garder `vercel.json`, sélectionner Node.js 24.x, puis définir dans les variables de **build** :
+Ne pas copier `PORT`, `DATA_FILE`, `ADMIN_PATH`, `TRUST_PROXY` ou `MINGLE_BACKEND_ORIGIN` pour cette architecture. Ne pas ajouter de préfixe public aux secrets. **Un push ne transfère pas les variables à Vercel** : `.env` et `ADMIN-ACCESS.local.txt` sont ignorés par Git.
 
-```dotenv
-MINGLE_BACKEND_ORIGIN=https://api.mingletv.app
-```
+Pour une Preview, définir `PUBLIC_ORIGIN` sur son origine HTTPS exacte dans cet environnement. Ne pas partager la base et les secrets de production avec des previews de code non fiable. Redéployer après toute modification des variables.
 
-Remplacer cette valeur par l’origine HTTPS effective du serveur. Cette variable est publique et ne doit contenir aucun secret. Ne mettre ni `ADMIN_PASSWORD_HASH`, ni `TURN_SECRET`, ni le fichier d’accès admin dans le projet frontend Vercel.
+## 3. Domaine et panel
 
-La commande `npm run build` produit `dist/` à partir d’une liste fermée de fichiers publics, sans les fichiers admin, la base ni les brouillons juridiques. Elle intègre l’origine du backend dans `config.js` et dans la politique de sécurité des pages. Sans origine valide, le build échoue explicitement. `cleanUrls` permet `/terms`, `/privacy` et `/rules`.
+Ajouter ces deux domaines au **même projet Vercel**, dans **Settings → Domains** :
 
-Ajouter `mingletv.app` au projet Vercel et configurer ses DNS. Choisir ce domaine comme URL canonique ; rediriger `www` si nécessaire. Une prévisualisation `*.vercel.app` ne peut pas utiliser le chat de production : l’origine autorisée doit correspondre exactement à `PUBLIC_ORIGIN`. Pour tester une preview, utiliser un backend de staging séparé et son origine autorisée, sans ouvrir de joker.
+1. `mingletv.app`
+2. `adminsecret.mingletv.app`
 
-Les réglages de build Vercel sont documentés dans [la configuration des builds](https://vercel.com/docs/builds/configure-a-build).
+Chez le fournisseur du domaine, recopier **les enregistrements DNS indiqués par Vercel** pour chacun. Attendre la validation DNS et le certificat HTTPS. [Guide des domaines Vercel](https://vercel.com/docs/domains/working-with-domains/add-a-domain).
 
-## 3. Accès admin et ouverture publique
+`vercel.json` dirige la racine du sous-domaine admin vers le panel. Les API admin vérifient ce nom d'hôte et exigent le mot de passe, une session et un jeton CSRF. Le sous-domaine n'est pas une garantie de secret.
 
-Exécuter `npm run setup:admin` avec Node 24+, puis conserver `ADMIN-ACCESS.local.txt` dans un gestionnaire de mots de passe. Reporter le chemin et le hash dans les variables du backend, puis redémarrer celui-ci. Ouvrir `https://api.mingletv.app/<chemin généré>` et saisir le mot de passe. Les identifiants locaux ne sont pas déployés automatiquement.
+**Mot de passe : `ADMIN-ACCESS.local.txt`, dans le dossier du projet.** En local : `npm start`, puis `http://localhost:3000/admin`. Ne jamais publier cette fiche.
 
-Compléter l’adresse et l’hébergement dans le panel. Organiser le traitement des signalements et des demandes de droits. La majorité est déclarative ; aucune vérification d’âge fiable n’est implémentée. Évaluer les mesures de protection des mineurs adaptées au lancement et aux pays visés.
+`npm run setup:admin -- --rotate` génère un nouveau mot de passe ; copier ensuite le nouveau hash dans Vercel. Pour révoquer aussi les sessions existantes, changer `SERVER_SECRET` : cela change également les empreintes statistiques.
 
-Avant l’ouverture : tester vidéo/audio entre un appareil Wi-Fi et un appareil 4G/5G avec `RELAY_ONLY=true`, puis stop, skip, signalement et blocage. Redémarrer le serveur et vérifier la conservation des statistiques et dossiers. Vérifier les IP observées derrière le proxy, les sauvegardes, les limites de débit et les coûts TURN. Les tests locaux ne valident ni le DNS, ni TLS, ni la bande passante de production.
+## 4. Après déploiement
 
-Une migration **entièrement sur Vercel Functions** demanderait une autre architecture : base distante, file et présence partagées, coordination des messages entre instances, sessions admin partagées et reconnexion avec restauration d’état. Cette migration n’est pas incluse dans le frontend préparé ici.
+Tester deux navigateurs ou appareils : caméra/micro, recherche, chat dans les deux sens, skip et stop. Vérifier puis supprimer un signalement de test dans le panel. Essayer aussi sur un réseau mobile distinct : le test local ne remplace pas la validation TURN.
+
+Compléter dans le panel l'adresse de l'exploitant, les lieux d'hébergement, les transferts et la politique des journaux/sauvegardes. **Supabase ne fournit pas un relais TURN**. Sans TURN, certains réseaux ne pourront pas établir la vidéo ; masquer l'IP au partenaire exige le mode relais.
+
+## Validation effectuée
+
+Les tests locaux couvrent SQL PostgreSQL, permissions, JWT/origines, sessions admin partagées, CSRF, limites de requêtes, isolation des duos et annulation des recherches. Le parcours réel sur Supabase a vérifié quatre visiteurs, deux duos, messages aller-retour isolés, vidéo avec caméras simulées, skip, signalement, statistiques, reconnexion admin et stop. Les comptes et le signalement de test ont été supprimés ; les compteurs agrégés peuvent inclure ces essais.
+
+Le DNS, le certificat du domaine, le déploiement Vercel et TURN n'ont pas été configurés ni validés en production. L'état est consulté toutes les deux secondes pendant une recherche/conversation, toutes les 25 secondes au repos ; le heartbeat se renouvelle environ toutes les 25 secondes. Un bannissement s'affiche donc au prochain contrôle, hors latence réseau. Surveiller les quotas Realtime, Auth et Functions et tester la charge avant une forte fréquentation.

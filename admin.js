@@ -67,11 +67,11 @@ export function createManagement(env, online) {
     for (let i = 0; i < 13; i++) { const month = date.toISOString().slice(0, 7); db.prepare('DELETE FROM visitors WHERE month=? AND token=?').run(month, identity(id, month)); date.setUTCMonth(date.getUTCMonth() - 1); }
   }
   function report(c, m) {
-    if (!c.peer || c.room !== m.room || !reasons.includes(m.reason) || typeof m.details !== 'string' || m.details.length > 1000) return { ok: false, message: 'Signalement invalide ou conversation terminée.' };
+    if (!c.peer || c.room !== m.room || !reasons.includes(m.reason) || typeof m.details !== 'string' || m.details.length > 1000) return { ok: false, message: 'Invalid report or conversation ended.' };
     const key = hash(c.ip), now = Date.now(); let rate = reportRates.get(key);
     if (!rate || rate.until < now) { rate = { count: 0, until: now + 3600000 }; reportRates.set(key, rate); }
-    if (rate.count >= 5) return { ok: false, message: 'Limite de signalements atteinte. Réessaie plus tard.' };
-    if (db.prepare('SELECT id FROM reports WHERE room=? AND reporter=?').get(c.room, c.id)) return { ok: false, message: 'Cette conversation a déjà été signalée.' };
+    if (rate.count >= 5) return { ok: false, message: 'Report limit reached. Try again later.' };
+    if (db.prepare('SELECT id FROM reports WHERE room=? AND reporter=?').get(c.room, c.id)) return { ok: false, message: 'This conversation has already been reported.' };
     const id = randomBytes(12).toString('hex');
     db.prepare('INSERT INTO reports(id,room,reporter,ip,country,reason,details,created) VALUES (?,?,?,?,?,?,?,?)').run(id, c.room, c.id, c.peer.ip, c.peer.country, m.reason, m.details.trim(), now);
     rate.count++; count('reports'); return { ok: true, id };
@@ -79,9 +79,9 @@ export function createManagement(env, online) {
   const json = (res, status, data) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(data)); };
   async function body(req) {
     let chunks = [], size = 0;
-    for await (const chunk of req) { size += chunk.length; if (size > 8192) throw new Error('Requête trop volumineuse'); chunks.push(chunk); }
+    for await (const chunk of req) { size += chunk.length; if (size > 8192) throw new Error('Request too large'); chunks.push(chunk); }
     const value = JSON.parse(Buffer.concat(chunks).toString());
-    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Requête invalide');
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid request');
     return value;
   }
   async function route(req, res, path, ip) {
@@ -90,7 +90,7 @@ export function createManagement(env, online) {
     const endpoint = path.slice(adminPath.length + 5);
     const adminOrigin = env.ADMIN_ORIGIN || env.PUBLIC_ORIGIN;
     const expectedOrigin = adminOrigin || `http://${req.headers.host}`;
-    if (req.method !== 'GET' && req.headers.origin !== expectedOrigin) { json(res, 403, { error: 'Origine refusée' }); return true; }
+    if (req.method !== 'GET' && req.headers.origin !== expectedOrigin) { json(res, 403, { error: 'Origin rejected' }); return true; }
     const cookieName = adminOrigin?.startsWith('https:') ? '__Host-mingle_admin' : 'mingle_admin';
     const cookie = (req.headers.cookie || '').split(';').map(c => c.trim()).find(c => c.startsWith(cookieName + '='))?.slice(cookieName.length + 1);
     const sessionKey = cookie ? hash(cookie) : '';
@@ -102,20 +102,20 @@ export function createManagement(env, online) {
         if (globalLogin.until < now) globalLogin = { count: 0, until: now + 600000 };
         let attempt = attempts.get(key);
         if (!attempt || attempt.until < now) { attempt = { count: 0, until: now + 600000 }; attempts.set(key, attempt); }
-        if (attempt.count >= 5 || globalLogin.count >= 40) { json(res, 429, { error: 'Trop de tentatives. Réessaie dans 10 minutes.' }); return true; }
+        if (attempt.count >= 5 || globalLogin.count >= 40) { json(res, 429, { error: 'Too many attempts. Try again in 10 minutes.' }); return true; }
         attempt.count++; globalLogin.count++;
         const input = await body(req);
-        if (typeof input.password !== 'string' || input.password.length > 256) throw new Error('Mot de passe invalide');
+        if (typeof input.password !== 'string' || input.password.length > 256) throw new Error('Invalid password');
         const computed = await derive(input.password, passwordParts[0], 64);
-        if (!timingSafeEqual(computed, Buffer.from(passwordParts[1], 'hex'))) { json(res, 401, { error: 'Mot de passe incorrect' }); return true; }
+        if (!timingSafeEqual(computed, Buffer.from(passwordParts[1], 'hex'))) { json(res, 401, { error: 'Incorrect password' }); return true; }
         const token = randomBytes(32).toString('hex'), csrf = randomBytes(24).toString('hex');
         if (sessions.size >= 20) sessions.delete(sessions.keys().next().value);
         sessions.set(hash(token), { csrf, expires: now + 8 * 3600000 }); attempts.delete(key);
         res.setHeader('Set-Cookie', `${cookieName}=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800${secure}`);
         json(res, 200, { csrf }); return true;
       }
-      if (!session || session.expires <= Date.now()) { sessions.delete(sessionKey); json(res, 401, { error: 'Connexion nécessaire' }); return true; }
-      if (req.method !== 'GET' && req.headers['x-csrf-token'] !== session.csrf) { json(res, 403, { error: 'Session invalide. Reconnecte-toi.' }); return true; }
+      if (!session || session.expires <= Date.now()) { sessions.delete(sessionKey); json(res, 401, { error: 'Sign-in required' }); return true; }
+      if (req.method !== 'GET' && req.headers['x-csrf-token'] !== session.csrf) { json(res, 403, { error: 'Invalid session. Sign in again.' }); return true; }
       if (endpoint === 'session' && req.method === 'GET') json(res, 200, { csrf: session.csrf });
       else if (endpoint === 'metrics' && req.method === 'GET') { purge(); json(res, 200, metrics()); }
       else if (endpoint === 'logout' && req.method === 'POST') { sessions.delete(sessionKey); res.setHeader('Set-Cookie', `${cookieName}=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${secure}`); json(res, 200, { ok: true }); }
@@ -130,30 +130,30 @@ export function createManagement(env, online) {
       } else if (endpoint === 'settings' && req.method === 'POST') {
         const input = await body(req);
         input.address ??= get('address', '');
-        for (const key of ['operator', 'contact', 'address', 'hosting']) if (typeof input[key] !== 'string' || input[key].length > 500) throw new Error('Informations invalides');
-        if (input.contact && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.contact)) throw new Error('Adresse e-mail invalide');
-        if (![7, 30, 90].includes(input.retentionDays)) throw new Error('Durée invalide');
+        for (const key of ['operator', 'contact', 'address', 'hosting']) if (typeof input[key] !== 'string' || input[key].length > 500) throw new Error('Invalid information');
+        if (input.contact && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.contact)) throw new Error('Invalid email address');
+        if (![7, 30, 90].includes(input.retentionDays)) throw new Error('Invalid duration');
         for (const key of ['operator', 'contact', 'address', 'hosting', 'retentionDays']) put(key, input[key]);
-        db.prepare('INSERT INTO audit(action,created) VALUES (?,?)').run('Modification des informations de confidentialité', Date.now()); purge(); json(res, 200, { ok: true });
+        db.prepare('INSERT INTO audit(action,created) VALUES (?,?)').run('Update privacy settings', Date.now()); purge(); json(res, 200, { ok: true });
       } else if (endpoint === 'report' && req.method === 'POST') {
         const input = await body(req); const row = db.prepare('SELECT * FROM reports WHERE id=?').get(String(input.id));
-        if (!row) { json(res, 404, { error: 'Signalement introuvable' }); return true; }
+        if (!row) { json(res, 404, { error: 'Report not found' }); return true; }
         if (input.action === 'delete') db.prepare('DELETE FROM reports WHERE id=?').run(row.id);
         else if (input.action === 'ban') {
-          if (![1, 7, 30].includes(input.days)) throw new Error('Durée de blocage invalide');
+          if (![1, 7, 30].includes(input.days)) throw new Error('Invalid ban duration');
           db.prepare('INSERT OR REPLACE INTO bans VALUES (?,?)').run(row.ip, Date.now() + input.days * day);
           db.prepare("UPDATE reports SET status='resolved' WHERE id=?").run(row.id);
           online(row.ip);
         } else if (input.action === 'update') {
-          if (!['pending', 'reviewing', 'resolved', 'dismissed'].includes(input.status) || typeof input.notes !== 'string' || input.notes.length > 2000) throw new Error('Modification invalide');
+          if (!['pending', 'reviewing', 'resolved', 'dismissed'].includes(input.status) || typeof input.notes !== 'string' || input.notes.length > 2000) throw new Error('Invalid update');
           db.prepare('UPDATE reports SET status=?,notes=? WHERE id=?').run(input.status, input.notes, row.id);
-        } else throw new Error('Action invalide');
-        db.prepare('INSERT INTO audit(action,created) VALUES (?,?)').run(`${input.action} : signalement ${row.id}`, Date.now()); json(res, 200, { ok: true });
+        } else throw new Error('Invalid action');
+        db.prepare('INSERT INTO audit(action,created) VALUES (?,?)').run(`${input.action} : report ${row.id}`, Date.now()); json(res, 200, { ok: true });
       } else if (endpoint === 'unban' && req.method === 'POST') {
         const input = await body(req); db.prepare('DELETE FROM bans WHERE ip=?').run(String(input.ip));
-        db.prepare('INSERT INTO audit(action,created) VALUES (?,?)').run('Levée d’un blocage IP', Date.now()); json(res, 200, { ok: true });
-      } else json(res, 404, { error: 'Introuvable' });
-    } catch { json(res, 400, { error: 'Requête invalide ou opération impossible.' }); }
+        db.prepare('INSERT INTO audit(action,created) VALUES (?,?)').run('Unban IP', Date.now()); json(res, 200, { ok: true });
+      } else json(res, 404, { error: 'Not found' });
+    } catch { json(res, 400, { error: 'Invalid request or operation failed.' }); }
     return true;
   }
   return { route, policy, count, recordPeak, report, visitor, banned, enabled, adminPath, close() { clearInterval(timer); db.close(); } };

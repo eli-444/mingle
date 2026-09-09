@@ -7,9 +7,9 @@
   fetch(new URL('/api/privacy', origin), { credentials: 'omit', cache: 'no-store' })
     .then(response => { if (!response.ok) throw new Error(); return response.json(); })
     .then(policy => {
-      for (const node of fields) node.textContent = policy[node.dataset.policy] || 'À compléter par l’exploitant avant l’ouverture publique.';
+      for (const node of fields) node.textContent = policy[node.dataset.policy] || 'To be completed by the operator before public launch.';
       const relay = document.getElementById('relayPolicy');
-      if (relay) relay.textContent = policy.relayRequired ? 'Le relais est obligatoire : ton interlocuteur ne reçoit pas directement ton IP réseau via la connexion vidéo.' : 'Les connexions directes peuvent révéler ton IP réseau à ton interlocuteur. Le réglage de confidentialité permet d’imposer un relais uniquement lorsqu’il est disponible.';
+      if (relay) relay.textContent = policy.relayRequired ? 'A relay is required: your partner does not directly receive your network IP through the video connection.' : 'Direct connections may reveal your network IP to your partner. The privacy setting can require a relay only when one is available.';
     })
-    .catch(() => { document.getElementById('policyStatus').textContent = 'Les informations actualisées sont indisponibles. Contacte aurorawebsec@gmail.com pour obtenir la politique applicable.'; });
+    .catch(() => { document.getElementById('policyStatus').textContent = 'Current information is unavailable. Contact aurorawebsec@gmail.com for the applicable policy.'; });
 })();

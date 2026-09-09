@@ -4,26 +4,26 @@ test('visitor reports a peer and admin reviews, bans and deletes the report', as
   const contexts = await Promise.all([1, 2, 3].map(() => browser.newContext({ permissions: ['camera', 'microphone'] })));
   const [a, b, admin] = await Promise.all(contexts.map(c => c.newPage()));
   const errors = []; for (const p of [a, b, admin]) p.on('pageerror', e => errors.push(e.message));
-  for (const page of [a, b]) { await page.goto('http://localhost:3100'); await page.locator('#adultConfirmed').check(); await page.locator('#start').click(); }
+  for (const page of [a, b]) { await page.goto('http://localhost:3100'); await page.locator('#adultConfirmed').check(); await page.locator('#ageContinue').click(); await page.locator('#start').click(); }
   await expect(a.locator('#remotePanel')).toHaveAttribute('data-state', 'connected', { timeout: 20000 });
-  await a.locator('#reportOpen').click(); await a.locator('#reportReason').selectOption({ label: 'Autre' });
+  await a.locator('#reportOpen').click(); await a.locator('#reportReason').selectOption({ label: 'Other' });
   await a.locator('#reportDetails').fill('Test <img src=x onerror=alert(1)>'); await a.locator('#reportSend').click();
-  await expect(a.locator('#error')).toContainText('Signalement transmis'); await expect(a.locator('#reportDialog')).toBeHidden();
+  await expect(a.locator('#error')).toContainText('Report sent'); await expect(a.locator('#reportDialog')).toBeHidden();
   await admin.goto('http://localhost:3100' + adminPath); await admin.locator('#password').fill('test-password-only'); await admin.locator('#login button').click();
   await expect(admin.locator('#dashboard')).toBeVisible();
   await expect(admin.locator('.report .details')).toHaveText('Test <img src=x onerror=alert(1)>');
   await expect(admin.locator('.report img')).toHaveCount(0);
   await expect(admin.locator('.report')).toContainText('127.0.0.1');
-  await admin.getByLabel('Statut du signalement').selectOption('reviewing'); await admin.getByLabel('Notes internes').fill('Examen manuel');
-  await admin.locator('.report').getByRole('button', { name: 'Enregistrer', exact: true }).click();
-  await expect(admin.locator('.report h3')).toContainText('En cours');
+  await admin.getByLabel('Report status').selectOption('reviewing'); await admin.getByLabel('Internal notes').fill('Examen manuel');
+  await admin.locator('.report').getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(admin.locator('.report h3')).toContainText('In review');
   await admin.screenshot({ path: 'test-results/admin.png', fullPage: true });
   admin.on('dialog', dialog => dialog.accept());
-  await admin.getByRole('button', { name: 'Bloquer cette IP' }).click();
+  await admin.getByRole('button', { name: 'Ban this IP' }).click();
   await expect(admin.locator('#bans')).toContainText('127.0.0.1');
-  await expect(b.locator('#error')).toContainText('suspendu');
-  await admin.getByRole('button', { name: 'Débloquer', exact: true }).click(); await expect(admin.locator('.ban')).toHaveCount(0);
-  await admin.locator('.report').getByRole('button', { name: 'Supprimer' }).click(); await expect(admin.locator('.report')).toHaveCount(0);
+  await expect(b.locator('#error')).toContainText('suspended');
+  await admin.getByRole('button', { name: 'Unban', exact: true }).click(); await expect(admin.locator('.ban')).toHaveCount(0);
+  await admin.locator('.report').getByRole('button', { name: 'Delete' }).click(); await expect(admin.locator('.report')).toHaveCount(0);
   await admin.locator('#logout').click(); await expect(admin.locator('#login')).toBeVisible();
   expect(errors).toEqual([]); await Promise.all(contexts.map(c => c.close()));
 });
@@ -43,7 +43,7 @@ test('admin statistics refresh without overwriting unsaved settings', async ({ p
   await page.goto(adminPath); await page.locator('#password').fill('test-password-only'); await page.locator('#login button').click();
   await expect(page.locator('#dashboard')).toBeVisible();
   await page.locator('#operator').fill('Saisie à conserver');
-  const card = page.locator('#live .card').filter({ hasText: 'Connexions en ligne' }).locator('strong');
+  const card = page.locator('#live .card').filter({ hasText: 'Online connections' }).locator('strong');
   const before = Number(await card.textContent());
   const visitor = await context.newPage(); await visitor.goto('/'); await expect(visitor.locator('#start')).toBeEnabled();
   await page.bringToFront();

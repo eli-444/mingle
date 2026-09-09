@@ -32,14 +32,14 @@ test('built frontend connects across origins and keeps admin on the backend', as
     const errors = [];
     for (const page of [a, b, admin]) page.on('pageerror', error => errors.push(error.message));
     for (const page of [a, b]) {
-      await page.goto(env.PUBLIC_ORIGIN); await page.locator('#adultConfirmed').check(); await page.locator('#start').click();
+      await page.goto(env.PUBLIC_ORIGIN); await page.locator('#adultConfirmed').check(); await page.locator('#ageContinue').click(); await page.locator('#start').click();
     }
     await expect(a.locator('#remotePanel')).toHaveAttribute('data-state', 'connected', { timeout: 20000 });
     await a.locator('#privacyOpen').click(); await expect(a.locator('#privacyText')).toContainText('Aurora Web & Security');
     await admin.goto(backendOrigin + adminPath); await admin.locator('#password').fill('split-password'); await admin.locator('#login button').click();
     await expect(admin.locator('#dashboard')).toBeVisible();
-    await expect(admin.locator('#live .card').filter({ hasText: 'Connexions en ligne' }).locator('strong')).toHaveText('2');
-    await expect(admin.locator('#live .card').filter({ hasText: 'Pages vues aujourd’hui' }).locator('strong')).toHaveText('2');
+    await expect(admin.locator('#live .card').filter({ hasText: 'Online connections' }).locator('strong')).toHaveText('2');
+    await expect(admin.locator('#live .card').filter({ hasText: 'Page views today' }).locator('strong')).toHaveText('2');
     await a.goto(env.PUBLIC_ORIGIN + '/privacy'); await expect(a.locator('[data-policy="operator"]')).toHaveText('Aurora Web & Security');
     expect(errors).toEqual([]);
   } finally {

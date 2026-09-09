@@ -1,139 +1,55 @@
 # Mingle TV
 
-Le nom public est **Mingle TV**, le domaine prévu **mingletv.app**, l’exploitant **Aurora Web & Security** et le contact **aurorawebsec@gmail.com**. L’[audit de publication](AUDIT-PUBLICATION.md) distingue ce qui a été vérifié localement de ce qui reste à configurer. Pour Vercel, suivre [VERCEL.md](VERCEL.md) : l’interface est déployable sur Vercel avec un serveur de chat persistant séparé.
+Rencontres vidéo entre deux inconnus, sans inscription visible : deux caméras, pays estimé, chat éphémère, Rechercher / skip / stop, signalement et confidentialité.
 
-Site de rencontres vidéo aléatoires sans inscription. Interface minimale : deux caméras côte à côte, pays, chat, Rechercher / skip et stop. Un drapeau permet de signaler et une roue dentée ouvre les réglages de confidentialité. La caméra locale est à gauche, celle de l’inconnu à droite.
+**Architecture de publication : Vercel + Supabase.** Le site et les API tournent sur Vercel ; Supabase gère les identités techniques anonymes, les duos, les signalements, les blocages et les statistiques. Les messages et la signalisation utilisent des canaux Realtime privés. La vidéo WebRTC passe directement entre participants ou par un relais TURN.
 
-## Lancer sur ton ordinateur
+## Lancer en local
 
-Installer Node.js 24, puis ouvrir un terminal dans ce dossier :
+Node.js 24 est nécessaire.
 
 ```sh
 npm ci
+```
+
+Sur une nouvelle installation, copier `.env.example` vers `.env`, puis renseigner les trois valeurs Supabase. Ne pas écraser un `.env` déjà rempli.
+
+```sh
+npm run setup:admin
 npm start
 ```
 
-Ouvrir **http://localhost:3000**. Confirmer avoir au moins 18 ans et accepter les conditions et règles, puis cliquer sur Rechercher et autoriser caméra et microphone dans le navigateur. Cette déclaration n’est pas une vérification d’âge. Pour essayer seul, ouvrir une deuxième fenêtre ou un autre navigateur sur cette même adresse. Certains appareils ne permettent pas à deux navigateurs de partager la même caméra. Avec deux appareils différents, utiliser le site publié en HTTPS.
-
-Ne pas ouvrir directement `public/index.html` : le serveur est indispensable. Ne pas copier `.env.example` pour un simple essai local, car son origine HTTPS d’exemple refuserait la connexion locale.
-
-## Ce qui fonctionne
-
-- Rechercher : activer caméra et micro, puis rejoindre la file aléatoire.
-- skip : quitter et rechercher une nouvelle personne. L’ancien partenaire doit cliquer sur skip pour reprendre sa recherche.
-- stop : quitter et libérer la caméra et le microphone. Ce bouton est à gauche de skip.
-- Caméra locale à gauche, caméra distante à droite, avec audio.
-- Pays estimé de chaque connexion, affiché sous forme de drapeau et de nom.
-- Indicateur animé pendant la recherche ; messages visibles uniquement en cas d’erreur.
-- Fermer ou recharger la page libère la caméra et le microphone.
-
-Le chat compact sous les caméras permet d’envoyer par Entrée ou par le bouton flèche. Il est actif dès la mise en relation et s’efface au changement de partenaire, au départ ou à stop. Ni le chat ni la vidéo ne sont enregistrés. Les signalements, blocages et statistiques sont maintenant conservés dans une base SQLite privée. Voir [ADMIN.md](ADMIN.md) pour l’accès et l’exploitation.
-
-## Affichage du pays
-
-Le serveur utilise une base GeoIP locale pour estimer le pays de l’adresse réseau. Aucune permission GPS ni requête à un service de géolocalisation externe n’est nécessaire. Seul le code pays est transmis au partenaire par la signalisation de l’application. En local, sur une adresse privée ou inconnue, le site affiche `🌐 —`. Un VPN peut faire apparaître le pays de sa sortie réseau.
-
-En accès direct, laisser `TRUST_PROXY=false`. Derrière le proxy Caddy fourni, définir `TRUST_PROXY=true` : Caddy remplace `X-Real-IP` par l’adresse du visiteur. Le port Node doit rester inaccessible directement depuis Internet. Avec un autre hébergeur, configurer ce même en-tête fiable avant d’activer cette option. Ne pas faire confiance à un en-tête fourni directement par le visiteur.
-
-La base livrée avec geoip-lite peut vieillir. Prévoir son actualisation pour une exploitation publique, selon les [instructions de geoip-lite](https://github.com/geoip-lite/node-geoip#built-in-updater). Ce produit inclut des données GeoLite créées par [MaxMind](https://www.maxmind.com/).
+Ouvrir **http://localhost:3000** et, pour le panel, **http://localhost:3000/admin**. Le mot de passe est dans **ADMIN-ACCESS.local.txt**. Le serveur local utilise les origines localhost même si `.env` contient les domaines de production.
 
 ## Publier
 
-Il reste à fournir ton domaine, ton hébergement et les paramètres du relais vidéo. Aucun compte n’est demandé aux visiteurs. Un compte chez un hébergeur peut être nécessaire pour toi, selon l’hébergement choisi.
+Suivre **[VERCEL.md](VERCEL.md)** : variables, purges Supabase, domaine `mingletv.app` et panel `adminsecret.mingletv.app`. Un push seul ne configure ni les variables secrètes, ni le DNS.
 
-Un hébergement de fichiers statiques seul ne suffit pas. Le serveur Node.js doit rester actif et accepter les WebSockets. Déployer **une seule instance** : la file d’attente est en mémoire. Plusieurs instances sépareraient les visiteurs en files indépendantes.
+Le code a été testé avec le vrai projet Supabase et quatre navigateurs : deux duos isolés, chat aller-retour, vidéo avec caméras simulées, skip, stop, signalement et panel. Aucun déploiement Vercel/DNS ni relais TURN réel n'a été réalisé pendant le raccordement.
 
-### 1. Configuration
+## Données et administration
 
-Pour une installation neuve, copier `.env.example` en `.env` et renseigner les variables ci-dessous. Si `npm run setup:admin` a déjà créé `.env`, modifier ce fichier sans l’écraser afin de conserver les identifiants admin.
+Aucune table ne conserve le chat ou les vidéos. Les sessions de conversation expirent après 90 secondes sans présence, puis sont purgées. Les signalements, bannissements et statistiques restent selon les durées configurées ; voir [la base Supabase](supabase/README.md) et [l'administration](ADMIN.md).
 
-```dotenv
-PORT=3000
-PUBLIC_ORIGIN=https://chat.ton-domaine.fr
-TURN_URLS=turn:turn.ton-domaine.fr:3478?transport=udp,turn:turn.ton-domaine.fr:3478?transport=tcp
-TURN_SECRET=ton-secret-aleatoire
-RELAY_ONLY=true
-```
+Le pays est estimé par Vercel à partir de la connexion ; il est indisponible en local et peut correspondre à la sortie d'un VPN. La mise en relation ne garantit pas que la vidéo aboutira sur tous les réseaux. TURN doit être configuré pour relayer les connexions qui en ont besoin et pour proposer le masquage de l'IP au partenaire.
 
-`PUBLIC_ORIGIN` doit correspondre exactement à l’adresse visitée, sans slash final. Utiliser un seul domaine canonique et rediriger les autres vers lui. Le secret reste côté serveur ; le navigateur reçoit des identifiants TURN temporaires valables 24 heures. Après 24 heures d’ouverture, recharger la page avant une nouvelle rencontre pour renouveler ces identifiants. Ne jamais publier `.env` dans un dépôt.
+Le domaine et le sous-domaine ne garantissent pas l'anonymat de l'exploitant. Compléter les informations publiques de confidentialité dans le panel avec les prestataires réellement utilisés.
 
-`RELAY_ONLY=true` impose le relais pour ne pas exposer l’adresse IP directe à l’interlocuteur. Le relais doit être opérationnel. `false` autorise les connexions directes et réduit la bande passante du relais, mais l’autre participant peut alors découvrir l’IP réseau. Sans paramètres TURN, le site essaie seulement STUN et la vidéo peut échouer entre certains réseaux. Le besoin de TURN est expliqué dans la [documentation WebRTC](https://webrtc.org/getting-started/turn-server).
-
-### 2. Héberger l’application
-
-Sur un serveur Linux avec Docker Compose installé, transférer ce projet et le fichier `.env`, puis exécuter :
-
-```sh
-docker compose up -d --build
-docker compose logs --tail=50 app
-```
-
-Le serveur écoute sur `127.0.0.1:3000`, pour être exposé par un proxy HTTPS. Docker redémarre l’application automatiquement. Le conteneur exécute Node avec un utilisateur non administrateur.
-
-Si ton hébergeur fournit déjà HTTPS et WebSockets : utiliser le Dockerfile, ou configurer `npm ci --omit=dev` comme commande de construction et `npm start` comme commande de lancement. Renseigner les variables dans son interface, déclarer le port 3000 ou son `PORT` fourni, et utiliser `/health` pour le contrôle de disponibilité. Garder une seule instance active, sans mise en veille automatique si tu souhaites des connexions continues.
-
-### 3. Activer HTTPS sur un VPS
-
-Faire pointer l’enregistrement DNS du domaine vers le serveur. Installer Caddy sur l’hôte, adapter `Caddyfile.example` et placer son contenu dans la configuration Caddy de ce serveur. Autoriser les ports TCP 80 et 443. Le proxy dirige le trafic vers `127.0.0.1:3000` et accepte aussi les WebSockets.
-
-Avec un domaine valide et les ports accessibles, Caddy obtient et renouvelle les certificats : [guide officiel Caddy](https://caddyserver.com/docs/quick-starts/reverse-proxy). L’accès à la caméra exige HTTPS, sauf sur localhost : [documentation getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia).
-
-### 4. Configurer le relais vidéo
-
-Le fichier `coturn.conf.example` fournit une configuration de départ pour un serveur coturn avec une IP publique. Sur un serveur Debian/Ubuntu avec coturn disponible :
-
-```sh
-sudo apt-get update
-sudo apt-get install coturn
-```
-
-Générer un secret aléatoire, par exemple avec `openssl rand -hex 32`. Copier ce même secret dans `TURN_SECRET` et `static-auth-secret` de coturn. Adapter `realm` et `server-name` au domaine TURN. Installer la configuration adaptée dans `/etc/turnserver.conf`, puis lancer :
-
-```sh
-sudo systemctl enable --now coturn
-sudo systemctl restart coturn
-```
-
-Faire pointer le domaine TURN directement vers le serveur, sans proxy HTTP intermédiaire. Ouvrir **3478 UDP et TCP**, ainsi que **49160–49260 UDP** dans le pare-feu système et chez l’hébergeur. En cas de NAT, renseigner `external-ip` comme expliqué dans le fichier. Pour les réseaux n’autorisant que TLS, ajouter un point d’accès TURN TLS et son certificat selon la [configuration officielle coturn](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf), puis ajouter son URL `turns:` à `TURN_URLS`.
-
-La plage de ports, les quotas et la bande passante sont à dimensionner selon la fréquentation. Le fichier fourni ne garantit pas une capacité particulière. Le serveur TURN est un service distinct du conteneur de l’application.
-
-### 5. Vérifier le site publié
-
-Ouvrir le site sur deux appareils, l’un en Wi-Fi et l’autre en réseau mobile. Tester vidéo dans les deux sens, audio, pays et Suivant. Faire ce test avec `RELAY_ONLY=true` pour confirmer le fonctionnement du relais. Vérifier que la fermeture de la page libère la caméra.
-
-Les tests locaux ont été exécutés avec des caméras simulées sous Edge. Ils ne remplacent pas ce test de réseau : aucun hébergement public ni relais réel n’a été configuré ou validé dans ce projet.
-
-Les conditions, règles et informations de confidentialité sont accessibles depuis l’accueil et la roue dentée, aux adresses `/terms`, `/rules` et `/privacy`. L’administration permet la modération a posteriori des signalements et les blocages IP temporaires. Elle ne surveille pas les vidéos et ne vérifie pas l’âge. Le nom de l’exploitant et le contact sont préremplis ; compléter son adresse, l’hébergement et les transferts, puis valider les bases légales avant l’ouverture publique. Les textes fournis ne constituent pas une certification de conformité. Les copies anglaises renommées restent dans `docs/legal-drafts/` et ne sont pas publiées.
-
-## Tester et modifier
+## Tests
 
 ```sh
 npm test
-npx playwright install chromium
-npm run test:e2e
+npm run test:supabase
 ```
 
-Sur Windows avec Edge déjà installé :
+Le test réel est volontaire et utilise le projet configuré :
 
-```powershell
-$env:PLAYWRIGHT_CHANNEL='msedge'
-npm run test:e2e
+```sh
+npm run test:supabase:live
 ```
 
-Les tests couvrent les associations, le protocole serveur, les départs, le contrôle d’origine, la détection des pays, les identifiants TURN et le parcours vidéo en un clic avec changement de partenaire. Ils vérifient aussi le refus de caméra et la disposition côte à côte sur mobile et ordinateur. Les captures sont produites dans `test-results/`.
+Il crée quatre comptes de test, puis les supprime ainsi que son signalement. Les compteurs agrégés peuvent inclure ces essais. Ne pas le lancer sur un projet avec des visiteurs actifs. Edge est utilisé par défaut ; `PLAYWRIGHT_CHANNEL` permet de choisir un autre navigateur installé.
 
-| Fichier | Rôle |
-| --- | --- |
-| `public/index.html` | Structure et textes de l’interface |
-| `public/style.css` | Couleurs, mise en page, adaptations mobiles |
-| `public/app.js` | Caméra, WebRTC, pays et recherche |
-| `server.js` | Serveur HTTP, associations, messages et signalisation |
-| `.env.example` | Paramètres de publication |
-| `Dockerfile`, `compose.yaml` | Déploiement de l’application |
-| `Caddyfile.example` | Proxy HTTPS |
-| `coturn.conf.example` | Relais audio/vidéo |
+## Ancienne architecture
 
-Pour modifier le nom, chercher `Mingle` et `mingle` dans les fichiers de l’interface. Pour changer les couleurs, modifier les variables au début de `public/style.css`. `npm run dev` relance le serveur lors des modifications ; recharger le navigateur pour les changements visuels.
-
-Le serveur limite les paquets WebSocket à 32 Ko, le trafic d’une connexion à 150 événements sur 10 secondes et les connexions simultanées à 2 000. Cette dernière valeur est un plafond de protection, pas une capacité mesurée. Les associations et états expirent au redémarrage du serveur.
+Sans `SUPABASE_URL`, le démarrage conserve le serveur Node/WebSocket et SQLite historique. `server.js`, `admin.js`, le Dockerfile et les fichiers Caddy/coturn associés restent disponibles pour ce mode. Cette architecture nécessite un serveur permanent et n'est pas celle à publier sur Vercel. Les anciennes données SQLite ne sont pas automatiquement importées dans Supabase.

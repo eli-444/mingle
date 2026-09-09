@@ -1,40 +1,45 @@
 ﻿<!doctype html>
-<html lang="fr">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101211"><title>Mingle TV — Rencontres vidéo</title><meta name="description" content="Mingle TV : rencontres vidéo aléatoires et chat en direct, réservés aux adultes."><link rel="stylesheet" href="/style.css"><script src="/config.js" defer></script><script src="/legal.js" defer></script><script src="/privacy.js" defer></script><script src="/app.js" defer></script></head>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101211"><title>Mingle TV — Random video chat</title><meta name="description" content="Mingle TV: random video conversations and live chat for adults."><link rel="stylesheet" href="/style.css"><script src="/config.js" defer></script><script src="/legal.js" defer></script><script src="/privacy.js" defer></script><script src="/app.js" defer></script></head>
 <body>
-<header><a href="/" aria-label="Mingle TV accueil">mingle<span> TV.</span></a><button id="privacyOpen" class="quiet" aria-label="Confidentialité et paramètres" title="Confidentialité et paramètres">⚙</button></header>
+<header><a href="/" aria-label="Mingle TV home">mingle<span> TV.</span></a><button id="privacyOpen" class="quiet" aria-label="Privacy and settings" title="Privacy and settings">⚙</button></header>
 <main>
-<section class="videos" aria-label="Conversation vidéo">
+<section class="videos" aria-label="Video conversation">
 <div class="video-panel" id="localPanel">
-<video id="localVideo" autoplay playsinline muted aria-label="Ta caméra"></video>
+<video id="localVideo" autoplay playsinline muted aria-label="Your camera"></video>
 <div class="placeholder" id="localPlaceholder" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="12" height="12" rx="3"/><path d="m15 10 6-3v10l-6-3"/></svg></div>
-<span class="country" id="localCountry" aria-label="Ton pays">🌐 —</span>
+<span class="country" id="localCountry" aria-label="Your country">🌐 —</span>
 </div>
 <div class="video-panel" id="remotePanel" data-state="idle">
-<video id="remoteVideo" autoplay playsinline aria-label="Caméra de l’inconnu"></video>
+<video id="remoteVideo" autoplay playsinline aria-label="Stranger camera"></video>
 <div class="placeholder" id="remotePlaceholder" aria-hidden="true"><span class="search-ring"></span></div>
-<span class="country" id="remoteCountry" aria-label="Pays de l’inconnu" hidden>🌐 —</span>
-<button id="playRemote" class="play" aria-label="Activer le son et la vidéo" hidden>▶</button>
-<button id="reportOpen" class="quiet report-open" aria-label="Signaler cette personne" title="Signaler cette personne" disabled>⚑</button>
+<span class="country" id="remoteCountry" aria-label="Stranger country" hidden>🌐 —</span>
+<button id="playRemote" class="play" aria-label="Enable audio and video" hidden>▶</button>
+<button id="reportOpen" class="quiet report-open" aria-label="Report this person" title="Report this person" disabled>⚑</button>
 </div>
 </section>
-<section class="chat" aria-label="Chat textuel">
+<section class="chat" aria-label="Text chat">
 <div id="messages" role="log" aria-live="polite" aria-label="Messages"></div>
 <form id="chatForm">
-<input id="message" aria-label="Ton message" placeholder="Message…" maxlength="2000" autocomplete="off" disabled>
-<button id="send" aria-label="Envoyer" disabled>↗</button>
+<input id="message" aria-label="Your message" placeholder="Message…" maxlength="2000" autocomplete="off" disabled>
+<button id="send" aria-label="Send" disabled>↗</button>
 </form>
 </section>
-<div class="actions"><button id="stop" disabled>stop</button><button id="start" disabled><span id="buttonLabel">Rechercher</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></button></div>
-<p class="age-confirmation"><label><input id="adultConfirmed" type="checkbox"> J’ai au moins 18 ans (et l’âge de majorité dans mon pays) et j’accepte les <a href="/terms" target="_blank" rel="noopener">conditions</a> et les <a href="/rules" target="_blank" rel="noopener">règles</a>.</label></p>
-<nav class="legal-links" aria-label="Informations légales"><a href="/terms">Conditions d’utilisation</a><a href="/privacy">Confidentialité</a><a href="/rules">Règles</a></nav>
+<div class="actions"><button id="stop" disabled>stop</button><button id="start" disabled><span id="buttonLabel">Search</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></button></div>
+<nav class="legal-links" aria-label="Legal information"><a href="/terms">Terms of Use</a><a href="/privacy">Privacy</a><a href="/rules">Rules</a></nav>
 <p id="error" role="alert" hidden></p>
 <span id="status" class="sr-only" role="status" aria-live="polite"></span>
 </main>
-<dialog id="privacyDialog"><h2>Confidentialité</h2>
-<form id="privacyForm"><label class="check"><input id="hideCountry" type="checkbox"> Masquer mon pays à mon interlocuteur</label><label class="check"><input id="relayOnly" type="checkbox"> Masquer mon IP à mon interlocuteur via un relais</label><p id="relayHint"></p><label class="check"><input id="analyticsConsent" type="checkbox"> Participer aux statistiques de visiteurs distincts</label><p>Facultatif. Un identifiant aléatoire est conservé dans ce navigateur avec ton accord. Tu peux le retirer ici.</p><button type="submit">Enregistrer</button></form>
-<details><summary>Mes données et mes droits</summary><div id="privacyText"></div></details>
-<details><summary>Règles</summary><p>Service réservé aux adultes. Nudité, harcèlement, haine, menaces, escroqueries et contenus illégaux sont interdits. Signale un comportement problématique avec le drapeau et quitte la conversation. Les signalements sont examinés a posteriori : aucune surveillance vidéo en direct n’est réalisée par l’administration.</p><p><a href="/rules" target="_blank" rel="noopener">Lire les règles complètes</a> · <a href="/terms" target="_blank" rel="noopener">Conditions d’utilisation</a> · <a href="/privacy" target="_blank" rel="noopener">Politique de confidentialité</a></p></details>
-<p id="privacyNotice" role="status"></p><form method="dialog"><button class="quiet">Fermer</button></form></dialog>
-<dialog id="reportDialog"><h2>Signaler cette personne</h2><form id="reportForm"><label>Motif<select id="reportReason" required><option>Nudité / contenu sexuel</option><option>Harcèlement / haine</option><option>Mineur présumé</option><option>Violence / menace</option><option>Spam / escroquerie</option><option>Autre</option></select></label><label>Détails facultatifs<textarea id="reportDetails" maxlength="1000" placeholder="Décris le problème sans ajouter d’informations personnelles inutiles."></textarea></label><p>Le motif, les détails, l’heure et l’IP de connexion de cette personne seront transmis à l’administration. Aucune capture vidéo ni historique du chat ne sera joint. L’envoi termine la conversation.</p><button id="reportSend">Envoyer le signalement</button><p id="reportNotice" role="status"></p></form><form method="dialog"><button class="quiet">Annuler</button></form></dialog>
+<dialog id="privacyDialog"><h2>Privacy</h2>
+<form id="privacyForm"><label class="check"><input id="hideCountry" type="checkbox"> Hide my country from my partner</label><label class="check"><input id="relayOnly" type="checkbox"> Hide my IP from my partner using a relay</label><p id="relayHint"></p><label class="check"><input id="analyticsConsent" type="checkbox"> Include me in unique visitor statistics</label><p>Optional. With your permission, a random identifier is saved in this browser. You can withdraw your permission here.</p><button type="submit">Save</button></form>
+<details><summary>My data and rights</summary><div id="privacyText"></div></details>
+<details><summary>Rules</summary><p>Adults only. Nudity, harassment, hate, threats, scams and illegal content are prohibited. Use the flag to report inappropriate behaviour and leave the conversation. Reports are reviewed afterwards; administrators do not monitor video live.</p><p><a href="/rules" target="_blank" rel="noopener">Read the full rules</a> · <a href="/terms" target="_blank" rel="noopener">Terms of Use</a> · <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a></p></details>
+<p id="privacyNotice" role="status"></p><form method="dialog"><button class="quiet">Close</button></form></dialog>
+<dialog id="reportDialog"><h2>Report this person</h2><form id="reportForm"><label>Reason<select id="reportReason" required><option value="Nudité / contenu sexuel">Nudity / sexual content</option><option value="Harcèlement / haine">Harassment / hate</option><option value="Mineur présumé">Suspected minor</option><option value="Violence / menace">Violence / threats</option><option value="Spam / escroquerie">Spam / scams</option><option value="Autre">Other</option></select></label><label>Optional details<textarea id="reportDetails" maxlength="1000" placeholder="Describe the issue without adding unnecessary personal information."></textarea></label><p>The reason, details, time and this person’s connection IP will be sent to the administrators. No video capture or chat history is attached. Sending the report ends the conversation.</p><button id="reportSend">Send report</button><p id="reportNotice" role="status"></p></form><form method="dialog"><button class="quiet">Cancel</button></form></dialog>
+<dialog id="ageDialog" aria-labelledby="ageTitle" aria-describedby="ageDescription">
+<h2 id="ageTitle">Adults only</h2>
+<p id="ageDescription">You must be at least 18 and the age of majority in your country to use Mingle TV.</p>
+<form id="ageForm"><label class="check"><input id="adultConfirmed" type="checkbox" required><span>I am 18 or older and accept the <a href="/terms" target="_blank" rel="noopener">Terms</a> and <a href="/rules" target="_blank" rel="noopener">Community Rules</a>.</span></label>
+<div class="age-actions"><button id="ageContinue" type="submit" disabled>Continue</button><button id="ageUnder18" type="button" class="quiet">I am under 18</button></div></form>
+</dialog>
 </body></html>

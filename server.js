@@ -23,7 +23,7 @@ export function createApp(env = process.env) {
   const clients = new Set();
   const waiting = new Set();
   const management = createManagement(env, banIP => {
-    if (banIP) for (const c of clients) if (c.ip === banIP) { c.send(JSON.stringify({ type: 'banned' })); c.close(1008, 'Accès suspendu'); }
+    if (banIP) for (const c of clients) if (c.ip === banIP) { c.send(JSON.stringify({ type: 'banned' })); c.close(1008, 'Access suspended'); }
     return { connected: clients.size, waiting: waiting.size, conversations: [...clients].filter(c => c.peer).length / 2 };
   });
   const files = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/privacy.js': ['privacy.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
@@ -59,12 +59,12 @@ export function createApp(env = process.env) {
     if (req.method !== 'GET') { res.writeHead(405); return res.end(); }
     if (path === '/health') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end('{"ok":true}'); }
     const file = files[path];
-    if (!file) { res.writeHead(404); return res.end('Introuvable'); }
+    if (!file) { res.writeHead(404); return res.end('Not found'); }
     try {
       let data = await readFile(new URL(`./public/${file[0]}`, import.meta.url));
       if (file[0] === 'admin.html') data = Buffer.from(data.toString().replaceAll('__ADMIN_PATH__', management.adminPath));
       res.writeHead(200, { 'Content-Type': `${file[1]}; charset=utf-8`, 'Cache-Control': file[0].startsWith('admin') ? 'no-store' : 'no-cache' }); res.end(data);
-    } catch { res.writeHead(500); res.end('Erreur serveur'); }
+    } catch { res.writeHead(500); res.end('Server error'); }
   });
   server.requestTimeout = 15000;
   const wss = new WebSocketServer({ noServer: true, maxPayload: 32768 });
@@ -109,7 +109,7 @@ export function createApp(env = process.env) {
     c.on('pong', () => { c.alive = true; });
     c.on('message', raw => {
       if (Date.now() - c.window > 10000) { c.window = Date.now(); c.count = 0; }
-      if (++c.count > 150) return c.close(1008, 'Trop de requêtes');
+      if (++c.count > 150) return c.close(1008, 'Too many requests');
       let m; try { m = JSON.parse(raw.toString()); } catch { return; }
       if (!m || typeof m !== 'object') return;
       if (m.type === 'privacy') {

@@ -1,5 +1,7 @@
 # Audit de publication — Mingle TV
 
+> Mise à jour après raccordement : le mode Vercel + Supabase est désormais implémenté et testé. Voir [VERCEL.md](VERCEL.md) pour l'état actuel et les étapes restantes. Les conclusions ci-dessous décrivent l'ancienne architecture Node/SQLite.
+
 État du projet examiné le 9 septembre 2026. Exploitant indiqué : Aurora Web & Security. Contact : aurorawebsec@gmail.com. Domaine prévu : mingletv.app.
 
 **Conclusion : base fonctionnelle pour un pilote, mais pas encore prête pour une ouverture publique sans configuration supplémentaire.** Le frontend est préparé pour Vercel ; le serveur de chat nécessite un hébergement persistant séparé dans cette architecture. Aucun déploiement public, DNS ni relais réel n’a été réalisé pendant cet audit.
