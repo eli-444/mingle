@@ -11,6 +11,7 @@ test('visitor reports a peer and admin reviews, bans and deletes the report', as
   await expect(a.locator('#error')).toContainText('Report sent'); await expect(a.locator('#reportDialog')).toBeHidden();
   await admin.goto('http://localhost:3100' + adminPath); await admin.locator('#password').fill('test-password-only'); await admin.locator('#login button').click();
   await expect(admin.locator('#dashboard')).toBeVisible();
+  await admin.getByRole('link', { name: 'Reports', exact: true }).click();
   await expect(admin.locator('.report .details')).toHaveText('Test <img src=x onerror=alert(1)>');
   await expect(admin.locator('.report img')).toHaveCount(0);
   await expect(admin.locator('.report')).toContainText('127.0.0.1');
@@ -20,20 +21,22 @@ test('visitor reports a peer and admin reviews, bans and deletes the report', as
   await admin.screenshot({ path: 'test-results/admin.png', fullPage: true });
   admin.on('dialog', dialog => dialog.accept());
   await admin.getByRole('button', { name: 'Ban this IP' }).click();
+  await admin.getByRole('link', { name: 'IP bans', exact: true }).click();
   await expect(admin.locator('#bans')).toContainText('127.0.0.1');
   await expect(b.locator('#error')).toContainText('suspended');
   await admin.getByRole('button', { name: 'Unban', exact: true }).click(); await expect(admin.locator('.ban')).toHaveCount(0);
+  await admin.getByRole('link', { name: 'Reports', exact: true }).click();
   await admin.locator('.report').getByRole('button', { name: 'Delete' }).click(); await expect(admin.locator('.report')).toHaveCount(0);
   await admin.locator('#logout').click(); await expect(admin.locator('#login')).toBeVisible();
   expect(errors).toEqual([]); await Promise.all(contexts.map(c => c.close()));
 });
 test('privacy choices persist and analytics can be withdrawn', async ({ page }) => {
-  await page.goto('/'); await page.locator('#privacyOpen').click();
+  await page.goto('/'); await page.locator('#adultConfirmed').check(); await page.locator('#ageContinue').click(); await page.locator('#privacyOpen').click();
   await expect(page.locator('#analyticsConsent')).not.toBeChecked();
   await expect(page.locator('#relayOnly')).toBeDisabled();
   await page.locator('#hideCountry').check(); await page.locator('#analyticsConsent').check(); await page.locator('#privacyForm button').click();
   expect(await page.evaluate(() => localStorage.getItem('mingle.visitor'))).toBeTruthy();
-  await page.reload(); await page.locator('#privacyOpen').click();
+  await page.reload(); await page.locator('#adultConfirmed').check(); await page.locator('#ageContinue').click(); await page.locator('#privacyOpen').click();
   await expect(page.locator('#analyticsConsent')).toBeChecked(); await expect(page.locator('#hideCountry')).toBeChecked();
   await page.locator('#analyticsConsent').uncheck(); await page.locator('#privacyForm button').click();
   expect(await page.evaluate(() => localStorage.getItem('mingle.visitor'))).toBe(null);
@@ -42,13 +45,17 @@ test('privacy choices persist and analytics can be withdrawn', async ({ page }) 
 test('admin statistics refresh without overwriting unsaved settings', async ({ page, context }) => {
   await page.goto(adminPath); await page.locator('#password').fill('test-password-only'); await page.locator('#login button').click();
   await expect(page.locator('#dashboard')).toBeVisible();
+  await page.getByRole('link', { name: 'Settings', exact: true }).click();
   await page.locator('#operator').fill('Saisie à conserver');
-  const card = page.locator('#live .card').filter({ hasText: 'Online connections' }).locator('strong');
+  await page.getByRole('link', { name: 'Overview', exact: true }).click();
+  const card = page.locator('#live .card').filter({ hasText: 'People online' }).locator('strong');
   const before = Number(await card.textContent());
-  const visitor = await context.newPage(); await visitor.goto('/'); await expect(visitor.locator('#start')).toBeEnabled();
+  const visitor = await context.newPage(); await visitor.goto('/'); await visitor.locator('#adultConfirmed').check(); await visitor.locator('#ageContinue').click(); await expect(visitor.locator('#start')).toBeEnabled();
   await page.bringToFront();
   await expect(card).toHaveText(String(before + 1), { timeout: 12000 });
+  await page.getByRole('link', { name: 'Settings', exact: true }).click();
   await expect(page.locator('#operator')).toHaveValue('Saisie à conserver');
+  await page.getByRole('link', { name: 'Overview', exact: true }).click();
   await visitor.close();
   await expect(card).toHaveText(String(before), { timeout: 12000 });
 });

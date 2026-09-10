@@ -2,6 +2,71 @@ const $ = id => document.getElementById(id);
 const base = location.pathname.replace(/\/$/, '') + '/api/';
 let csrf = '', page = 0;
 let metricsTimer, metricsLoading = false;
+const views = {
+  overview: ['Overview', 'A live pulse of your community.'],
+  analytics: ['Analytics', 'Traffic and activity over time.'],
+  'reports-section': ['Reports', 'Review reports and manage moderation.'],
+  'mail-section': ['Mail', 'Messages from your community.'],
+  'bans-section': ['IP bans', 'Review and manage access restrictions.'],
+  'settings-section': ['Settings', 'Manage public information and retention.'],
+  'audit-section': ['Audit log', 'Recent administrative actions.']
+};
+const mobileLayout = matchMedia('(max-width: 900px)');
+function closeMenu(restoreFocus = false) {
+  document.body.classList.remove('menu-open');
+  $('menuToggle').setAttribute('aria-expanded', 'false');
+  $('menuBackdrop').hidden = true;
+  $('workspace').inert = false;
+  $('sidebar').inert = mobileLayout.matches;
+  $('sidebar').removeAttribute('role');
+  $('sidebar').removeAttribute('aria-modal');
+  if (restoreFocus) $('menuToggle').focus();
+}
+function selectView(focus = false) {
+  const requested = location.hash.slice(1);
+  const name = Object.hasOwn(views, requested) ? requested : 'overview';
+  if (requested !== name) history.replaceState(null, '', '#' + name);
+  document.querySelectorAll('[data-view]').forEach(section => { section.hidden = section.id !== name; });
+  document.querySelectorAll('.side-link').forEach(link => {
+    const current = link.hash === '#' + name;
+    link.classList.toggle('active', current);
+    if (current) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
+  });
+  $('viewTitle').textContent = views[name][0];
+  $('viewDescription').textContent = views[name][1];
+  document.title = views[name][0] + ' · Mingle TV Admin';
+  closeMenu();
+  if (focus && !$('dashboard').hidden) { $('viewTitle').focus({ preventScroll: true }); window.scrollTo(0, 0); }
+}
+$('menuToggle').onclick = () => {
+  document.body.classList.add('menu-open');
+  $('menuToggle').setAttribute('aria-expanded', 'true');
+  $('menuBackdrop').hidden = false;
+  $('workspace').inert = true;
+  $('sidebar').inert = false;
+  $('sidebar').setAttribute('role', 'dialog');
+  $('sidebar').setAttribute('aria-modal', 'true');
+  $('menuClose').focus();
+};
+$('menuClose').onclick = () => closeMenu(true);
+$('menuBackdrop').onclick = () => closeMenu(true);
+document.addEventListener('keydown', event => {
+  if (!document.body.classList.contains('menu-open')) return;
+  if (event.key === 'Escape') { event.preventDefault(); closeMenu(true); }
+  if (event.key === 'Tab') {
+    const items = [...$('sidebar').querySelectorAll('a[href], button:not([hidden])')].filter(el => el.getClientRects().length);
+    const first = items[0], last = items.at(-1);
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  }
+});
+mobileLayout.addEventListener('change', () => closeMenu());
+window.addEventListener('hashchange', () => selectView(true));
+document.querySelectorAll('.side-link').forEach(link => link.addEventListener('click', () => {
+  if (location.hash === link.hash) { closeMenu(); $('viewTitle').focus(); }
+}));
+selectView();
+
 const reasonLabels = {"Nudité / contenu sexuel":"Nudity / sexual content","Harcèlement / haine":"Harassment / hate","Mineur présumé":"Suspected minor","Violence / menace":"Violence / threats","Spam / escroquerie":"Spam / scams","Autre":"Other"};
 const states = { pending: 'New', reviewing: 'In review', resolved: 'Resolved', dismissed: 'Dismissed' };
 const date = value => new Date(value).toLocaleString('en-GB');
@@ -10,6 +75,8 @@ function notice(text) { $('notice').textContent = text; }
 function loggedIn(value) {
   $('login').hidden = value; $('dashboard').hidden = $('logout').hidden = !value;
   clearInterval(metricsTimer);
+  closeMenu();
+  if (value) selectView();
   if (value) metricsTimer = setInterval(refreshMetrics, 5000);
 }
 async function api(endpoint, data) {
