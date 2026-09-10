@@ -136,3 +136,43 @@ dialog summary { cursor: pointer; font-size: 14px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Search-friendly informational content: visible to users, separate from the live chat viewport. */
+.seo-home, .seo-page { background: #101211; color: #f1f3ef; }
+.seo-shell { width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 72px 0; }
+.seo-eyebrow { margin: 0 0 12px; color: #dafa78; font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.seo-home h1, .seo-page h1 { max-width: 900px; margin: 0; font-size: clamp(34px, 6vw, 64px); line-height: 1.03; letter-spacing: -.04em; }
+.seo-home h2, .seo-page h2 { margin: 0 0 12px; font-size: clamp(22px, 3vw, 31px); line-height: 1.15; letter-spacing: -.02em; }
+.seo-home h3, .seo-page h3 { margin: 28px 0 10px; font-size: 19px; }
+.seo-lead { max-width: 820px; margin: 22px 0 0; color: #c5d1bd; font-size: clamp(17px, 2vw, 20px); line-height: 1.7; }
+.seo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 46px; }
+.seo-grid article { padding: 26px; border: 1px solid #282e2a; border-radius: 14px; background: #151917; }
+.seo-grid p, .seo-page p, .seo-page li, .seo-steps li, .seo-faq p { color: #b9c5b8; line-height: 1.75; }
+.seo-steps, .seo-faq, .seo-topic-links, .seo-section { margin-top: 58px; }
+.seo-steps ol { display: grid; gap: 14px; padding-left: 22px; }
+.seo-faq details { border-top: 1px solid #2c342f; padding: 18px 0; }
+.seo-faq details:last-of-type { border-bottom: 1px solid #2c342f; }
+.seo-faq summary { cursor: pointer; font-weight: 700; font-size: 17px; }
+.seo-topic-links { display: flex; flex-wrap: wrap; gap: 10px; }
+.seo-topic-links h2 { flex-basis: 100%; }
+.seo-topic-links a, .seo-cta a { display: inline-block; padding: 10px 13px; border: 1px solid #40513c; border-radius: 999px; color: #dafa78; text-decoration: none; }
+.seo-topic-links a:hover, .seo-cta a:hover { border-color: #dafa78; background: #dafa7810; }
+.seo-page header { border-bottom: 1px solid #282e2a; }
+.seo-page .seo-shell { max-width: 900px; }
+.seo-breadcrumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; font-size: 13px; color: #89978b; }
+.seo-breadcrumbs a { color: #b9c5b8; }
+.seo-content { margin-top: 44px; }
+.seo-content section { margin-top: 48px; }
+.seo-content ul, .seo-content ol { padding-left: 22px; }
+.seo-content li + li { margin-top: 10px; }
+.seo-note { margin: 34px 0; padding: 18px 20px; border-left: 3px solid #dafa78; background: #171b19; border-radius: 0 10px 10px 0; }
+.seo-cta { margin-top: 50px; padding: 28px; border: 1px solid #40513c; border-radius: 14px; background: #151917; }
+.seo-cta p { max-width: 700px; }
+.seo-related { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 44px; }
+.seo-related strong { flex-basis: 100%; }
+.seo-related a { color: #dafa78; }
+@media (max-width: 720px) {
+  .seo-shell { padding: 52px 0; }
+  .seo-grid { grid-template-columns: 1fr; }
+  .seo-grid article { padding: 20px; }
+}

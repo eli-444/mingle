@@ -7,7 +7,7 @@
     "build": "node --env-file-if-exists=.env scripts/build-frontend.js",
     "start": "node --env-file-if-exists=.env scripts/start.js",
     "dev": "node --watch --env-file-if-exists=.env scripts/start.js",
-    "test": "node --test --test-isolation=none test/server.test.js test/admin.test.js test/frontend.test.js test/supabase.test.js test/supabase-api.test.js test/transport.test.js",
+    "test": "node --test --test-isolation=none test/server.test.js test/admin.test.js test/frontend.test.js test/seo.test.js test/supabase.test.js test/supabase-api.test.js test/transport.test.js",
     "test:e2e": "playwright test",
     "test:supabase": "node --test --test-isolation=none test/supabase.test.js test/supabase-api.test.js",
     "test:supabase:live": "node --env-file=.env scripts/test-supabase-live.js",
