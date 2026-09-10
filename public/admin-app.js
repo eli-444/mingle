@@ -58,6 +58,16 @@ async function load() {
     card.append(status, notes, buttons); return card;
   }));
   if (!data.reports.length) $('reports').append(el('p', 'No reports.'));
+  const contactStates = { new: 'New', in_progress: 'In progress', closed: 'Closed' };
+  $('contacts').replaceChildren(...(data.contacts || []).map(contact => {
+    const card = el('article', undefined, 'report'); card.dataset.contactId = contact.id;
+    card.append(el('h3', contact.firstName + ' ' + contact.lastName + ' · ' + contact.email), el('p', date(contact.created) + ' · ' + contact.id, 'meta'), el('p', contact.message, 'details'));
+    const status = el('select'); status.setAttribute('aria-label', 'Mail status'); Object.entries(contactStates).forEach(([value, label]) => { const option = el('option', label); option.value = value; status.append(option); }); status.value = contact.status;
+    const notes = el('textarea'); notes.value = contact.notes || ''; notes.maxLength = 2000; notes.placeholder = 'Internal notes';
+    const buttons = el('div', undefined, 'report-actions'); buttons.append(action('Save', async () => { await api('contact', { id: contact.id, action: 'update', status: status.value, notes: notes.value }); await load(); notice('Mail updated.'); }), action('Delete', async () => { if (!confirm('Delete this message?')) return; await api('contact', { id: contact.id, action: 'delete' }); await load(); notice('Mail deleted.'); }, true));
+    card.append(status, notes, buttons); return card;
+  }));
+  if (!(data.contacts || []).length) $('contacts').append(el('p', 'No messages.'));
   $('pagination').textContent = 'Page ' + (page + 1) + ' · ' + data.totalReports + ' report(s)'; $('previous').disabled = page === 0; $('next').disabled = (page + 1) * 50 >= data.totalReports;
   $('bans').replaceChildren(...data.bans.map(ban => { const row = el('div', undefined, 'ban'); row.append(el('span', ban.ip + ' · until ' + date(ban.expires)), action('Unban', async () => { await api('unban', { ip: ban.ip }); await load(); notice('IP unbanned.'); })); return row; }));
   for (const key of ['operator', 'contact', 'address', 'hosting']) $(key).value = data.policy[key]; $('retention').value = data.policy.retentionDays;

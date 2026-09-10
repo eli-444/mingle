@@ -125,6 +125,18 @@ create table if not exists mingle_private.rate_limits (
   hits integer not null default 1 check (hits > 0),
   expires_at timestamptz not null
 );
+create table if not exists mingle_private.contact_requests (
+  id uuid primary key default gen_random_uuid(),
+  first_name text not null check (length(first_name) between 1 and 100),
+  last_name text not null check (length(last_name) between 1 and 100),
+  email text not null check (length(email) between 3 and 320),
+  message text not null check (length(message) between 1 and 5000),
+  status text not null default 'new' check (status in ('new','in_progress','closed')),
+  notes text not null default '' check (length(notes) <= 2000),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists mingle_contact_requests_status on mingle_private.contact_requests(status, created_at desc);
 
 -- Défense en profondeur : RLS sans policy navigateur sur toutes les tables privées.
 do $$ declare t record; begin
@@ -392,6 +404,7 @@ begin
     'policy',public.mingle_public_settings(),
     'totalReports',(select count(*) from mingle_private.reports where p_status='all' or status=p_status),
     'reports',coalesce((select jsonb_agg(to_jsonb(r) order by created_at desc) from (select * from mingle_private.reports where p_status='all' or status=p_status order by created_at desc,id limit 50 offset p_page*50) r),'[]'::jsonb),
+    'contacts',public.mingle_contact_requests(),
     'bans',coalesce((select jsonb_agg(to_jsonb(b)) from (select * from mingle_private.ip_bans where expires_at>now() order by expires_at desc limit 200) b),'[]'::jsonb),
     'audit',coalesce((select jsonb_agg(to_jsonb(a)) from (select * from mingle_private.admin_audit order by created_at desc,id desc limit 50) a),'[]'::jsonb));
 end $$;
@@ -420,6 +433,39 @@ begin
       expires_at=case when mingle_private.rate_limits.expires_at<=now() then now()+make_interval(secs=>p_seconds) else mingle_private.rate_limits.expires_at end
     returning hits into v_hits;
   return v_hits<=p_limit;
+end $$;
+
+create or replace function public.mingle_contact_create(p_first_name text,p_last_name text,p_email text,p_message text)
+returns uuid language plpgsql security definer set search_path = '' as $$
+declare v_id uuid;
+begin
+  insert into mingle_private.contact_requests(first_name,last_name,email,message)
+    values (btrim(p_first_name),btrim(p_last_name),lower(btrim(p_email)),btrim(p_message)) returning id into v_id;
+  return v_id;
+end $$;
+
+create or replace function public.mingle_contact_requests()
+returns jsonb language sql stable security definer set search_path = '' as $$
+  select coalesce(jsonb_agg(to_jsonb(r) order by r.created_at desc),'[]'::jsonb)
+  from (select id,first_name,last_name,email,message,status,notes,created_at,updated_at
+        from mingle_private.contact_requests order by created_at desc limit 200) r;
+$$;
+
+create or replace function public.mingle_contact_update(p_request uuid,p_status text,p_notes text,p_actor text)
+returns void language plpgsql security definer set search_path = '' as $$
+begin
+  if p_status not in ('new','in_progress','closed') or length(p_notes)>2000 then raise exception 'Invalid contact request'; end if;
+  update mingle_private.contact_requests set status=p_status,notes=p_notes,updated_at=now() where id=p_request;
+  if not found then raise exception 'Contact request not found'; end if;
+  insert into mingle_private.admin_audit(actor,action) values(p_actor,'Update contact request '||p_request::text);
+end $$;
+
+create or replace function public.mingle_contact_delete(p_request uuid,p_actor text)
+returns void language plpgsql security definer set search_path = '' as $$
+begin
+  delete from mingle_private.contact_requests where id=p_request;
+  if not found then raise exception 'Contact request not found'; end if;
+  insert into mingle_private.admin_audit(actor,action) values(p_actor,'Delete contact request '||p_request::text);
 end $$;
 
 -- Autorisation Realtime : uniquement son canal personnel et son duo encore actif.

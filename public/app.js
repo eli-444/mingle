@@ -165,4 +165,8 @@ $('chatForm').onsubmit = event => {
   if (room && text && send({ type: 'chat', room, text })) { $('message').value = ''; controls(); }
 };
 window.addEventListener('pagehide', () => { stop(); socket?.close(); });
+if ($('contactForm')) $('contactForm').onsubmit = async event => {
+  event.preventDefault(); const form = event.currentTarget, button = form.querySelector('button[type="submit"]'); button.disabled = true; $('contactNotice').textContent = '';
+  try { const response = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ firstName: $('contactFirstName').value, lastName: $('contactLastName').value, email: $('contactEmail').value, message: $('contactMessage').value }) }); const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Message could not be sent.'); form.reset(); $('contactNotice').textContent = 'Message sent.'; } catch (error) { $('contactNotice').textContent = error.message; } finally { button.disabled = false; }
+};
 $('ageDialog').showModal();

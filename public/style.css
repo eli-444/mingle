@@ -5,6 +5,7 @@
 #messages{height:86px!important;padding:9px 12px!important;gap:5px!important}
 #chatForm{padding:7px!important;gap:7px!important}
 #message{min-height:36px!important;padding:7px 10px!important}
+.contact-box{max-width:560px!important;margin:14px auto 0!important;border-top:1px solid #40513c;padding-top:14px;text-align:center}.contact-box summary{cursor:pointer;color:#dafa78;font-size:13px}.contact-box form{text-align:left;margin-top:12px}.contact-box label{display:block;margin:8px 0;font-size:12px}.contact-box input,.contact-box textarea{display:block;width:100%;margin-top:5px;padding:8px;font:inherit}.contact-box textarea{min-height:90px;resize:vertical}.contact-box button{padding:9px 13px}#contactNotice{color:#dafa78;min-height:1.3em}
 .actions{padding-top:12px!important}
 #start,#stop{height:48px!important}
 .legal-links{margin-top:12px!important}

@@ -26,6 +26,7 @@
 </section>
 <div class="actions"><button id="stop" disabled>stop</button><button id="start" disabled><span id="buttonLabel">Search</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></button></div>
 <nav class="legal-links" aria-label="Legal information"><a href="/terms">Terms of Use</a><a href="/privacy">Privacy</a><a href="/rules">Rules</a></nav>
+<details class="contact-box"><summary>Contact us</summary><form id="contactForm"><label>First name<input id="contactFirstName" maxlength="100" autocomplete="given-name" required></label><label>Last name<input id="contactLastName" maxlength="100" autocomplete="family-name" required></label><label>Email<input id="contactEmail" type="email" maxlength="320" autocomplete="email" required></label><label>Message<textarea id="contactMessage" maxlength="5000" required></textarea></label><button type="submit">Send message</button><p id="contactNotice" role="status"></p></form></details>
 <p id="error" role="alert" hidden></p>
 <span id="status" class="sr-only" role="status" aria-live="polite"></span>
 </main>

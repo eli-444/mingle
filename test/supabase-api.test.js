@@ -59,6 +59,15 @@ test('chat verifies JWT and origin, derives user and IP on server, and enforces 
   f.limit(); assert.equal((await f.request('chat', { action: 'open' }, auth)).status, 429);
 });
 
+test('contact form validates fields and calls the private storage RPC', async t => {
+  const f = await fixture(t);
+  const response = await f.request('contact', { firstName: 'Ada', lastName: 'Lovelace', email: 'ada@example.com', message: 'Advertising inquiry' });
+  assert.equal(response.status, 200);
+  const call = f.calls.find(item => item.name === 'mingle_contact_create');
+  assert.equal(call.args.p_first_name, 'Ada'); assert.equal(call.args.p_last_name, 'Lovelace'); assert.equal(call.args.p_email, 'ada@example.com');
+  assert.equal((await f.request('contact', { firstName: '', lastName: 'Lovelace', email: 'bad', message: '' })).status, 400);
+});
+
 test('Vercel IP extraction prefers the platform-specific header and safely falls back to sanitized forwarding headers', () => {
   assert.equal(requestIP({ headers: { 'x-vercel-forwarded-for': '203.0.113.8', 'x-forwarded-for': '192.0.2.1' } }, { VERCEL: '1' }), '203.0.113.8');
   assert.equal(requestIP({ headers: { 'x-forwarded-for': '192.0.2.1' } }, { VERCEL: '1' }), '192.0.2.1');
