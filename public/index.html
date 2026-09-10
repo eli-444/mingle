@@ -1,9 +1,9 @@
 ﻿<!doctype html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101211"><title>Mingle TV — Random video chat</title><meta name="description" content="Mingle TV: random video conversations and live chat for adults."><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/style.css"><script src="/config.js" defer></script><script src="/legal.js" defer></script><script src="/privacy.js" defer></script><script src="/app.js" defer></script></head>
-<body>
+<body class="chat-page">
 <header><a href="/" aria-label="Mingle TV home">mingle<span> TV.</span></a><button id="privacyOpen" class="quiet" aria-label="Privacy and settings" title="Privacy and settings">⚙</button></header>
-<main>
+<main class="chat-layout">
 <section class="videos" aria-label="Video conversation">
 <div class="video-panel" id="localPanel">
 <video id="localVideo" autoplay playsinline muted aria-label="Your camera"></video>
@@ -17,6 +17,10 @@
 <button id="reportOpen" class="quiet report-open" aria-label="Report this person" title="Report this person" disabled>⚑</button>
 </div>
 </section>
+<div class="controls-panel">
+<div class="actions"><button id="start" disabled><span id="buttonLabel">Search</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></button><button id="stop" disabled>stop</button></div>
+<p id="error" role="alert" hidden></p>
+</div>
 <section class="chat" aria-label="Text chat">
 <div id="messages" role="log" aria-live="polite" aria-label="Messages"></div>
 <form id="chatForm">
@@ -24,12 +28,13 @@
 <button id="send" aria-label="Send" disabled>↗</button>
 </form>
 </section>
-<div class="actions"><button id="stop" disabled>stop</button><button id="start" disabled><span id="buttonLabel">Search</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></button></div>
-<nav class="legal-links" aria-label="Legal information"><a href="/terms">Terms of Use</a><a href="/privacy">Privacy</a><a href="/rules">Rules</a></nav>
-<details class="contact-box"><summary>Contact us</summary><form id="contactForm"><label>First name<input id="contactFirstName" maxlength="100" autocomplete="given-name" required></label><label>Last name<input id="contactLastName" maxlength="100" autocomplete="family-name" required></label><label>Email<input id="contactEmail" type="email" maxlength="320" autocomplete="email" required></label><label>Message<textarea id="contactMessage" maxlength="5000" required></textarea></label><button type="submit">Send message</button><p id="contactNotice" role="status"></p></form></details>
-<p id="error" role="alert" hidden></p>
 <span id="status" class="sr-only" role="status" aria-live="polite"></span>
 </main>
+<footer class="site-footer">
+<nav class="legal-links" aria-label="Legal information"><a href="/terms">Terms of Use</a><a href="/privacy">Privacy</a><a href="/rules">Rules</a></nav>
+<details class="contact-box"><summary>Contact us</summary><form id="contactForm"><label>First name<input id="contactFirstName" maxlength="100" autocomplete="given-name" required></label><label>Last name<input id="contactLastName" maxlength="100" autocomplete="family-name" required></label><label>Email<input id="contactEmail" type="email" maxlength="320" autocomplete="email" required></label><label>Message<textarea id="contactMessage" maxlength="5000" required></textarea></label><button type="submit">Send message</button><p id="contactNotice" role="status"></p></form></details>
+<p class="footer-brand">Mingle TV · Aurora Web &amp; Security</p>
+</footer>
 <dialog id="privacyDialog"><h2>Privacy</h2>
 <form id="privacyForm"><label class="check"><input id="hideCountry" type="checkbox"> Hide my country from my partner</label><label class="check"><input id="relayOnly" type="checkbox"> Hide my IP from my partner using a relay</label><p id="relayHint"></p><label class="check"><input id="analyticsConsent" type="checkbox"> Include me in unique visitor statistics</label><p>Optional. With your permission, a random identifier is saved in this browser. You can withdraw your permission here.</p><button type="submit">Save</button></form>
 <details><summary>My data and rights</summary><div id="privacyText"></div></details>
