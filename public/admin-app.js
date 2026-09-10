@@ -25,7 +25,12 @@ function action(label, task, dangerous = false) {
 function rows(id, items, keys) { $(id).replaceChildren(...items.map(item => { const tr = el('tr'); keys.forEach(key => tr.append(el('td', item[key]))); return tr; })); }
 function renderMetrics(data) {
   $('updated').textContent = 'Statistics updated at ' + new Date().toLocaleTimeString('en-GB') + ' · refreshed every 5 s';
-  $('live').replaceChildren(...[['Online connections', data.online.connected], ['Waiting', data.online.waiting], ['Active matches', data.online.conversations], ['Page views today', data.today.pageviews], ['Peak online today', data.today.peak]].map(([label, number]) => { const div = el('div', undefined, 'card'); div.append(el('strong', number), el('span', label)); return div; }));
+  $('live').replaceChildren(...[['Visits / 30 min', data.visits30m], ['Visits today', data.visitsToday], ['Visits this month', data.visitsMonth], ['People online', data.online.connected], ['Reports', data.reportsTotal]].map(([label, number]) => { const div = el('div', undefined, 'card'); div.append(el('strong', number ?? 0), el('span', label)); return div; }));
+  const series = data.visitSeries || [];
+  const maxVisit = Math.max(1, ...series.map(row => Number(row.visits || 0)));
+  $('trafficChart').replaceChildren(...series.map(row => { const bar = el('span', undefined, 'traffic-bar'); bar.style.height = Math.max(4, Number(row.visits || 0) / maxVisit * 100) + '%'; bar.title = new Date(row.minute).toLocaleTimeString('en-GB') + ': ' + row.visits + ' visits'; return bar; }));
+  const maxCountry = Math.max(1, ...(data.countries || []).map(item => Number(item.visits)));
+  $('countries').replaceChildren(...(data.countries || []).map(item => { const row = el('div', undefined, 'country-row'); const label = el('div'); label.append(el('strong', item.country), el('span', item.visits + ' visits')); const track = el('div', undefined, 'country-track'); const fill = el('i'); fill.style.width = (Number(item.visits) / maxCountry * 100) + '%'; track.append(fill); row.append(label, track); return row; }));
   rows('monthly', data.monthly, ['month', 'pageviews', 'connections', 'visitors', 'peak', 'matches', 'reports']); rows('daily', data.daily, ['date', 'pageviews', 'connections', 'peak', 'matches', 'reports']);
 }
 async function refreshMetrics() {

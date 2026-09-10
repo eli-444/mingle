@@ -30,6 +30,12 @@ create table if not exists mingle_private.daily_stats (
   matches bigint not null default 0 check (matches >= 0),
   reports bigint not null default 0 check (reports >= 0)
 );
+create table if not exists mingle_private.minute_stats (
+  minute timestamptz primary key,
+  visits bigint not null default 0 check (visits >= 0),
+  countries jsonb not null default '{}'::jsonb
+);
+create index if not exists mingle_minute_stats_minute on mingle_private.minute_stats(minute);
 create table if not exists mingle_private.monthly_visitors (
   month date not null check (extract(day from month) = 1),
   visitor_hash text not null check (visitor_hash ~ '^[a-f0-9]{64}$'),
@@ -297,8 +303,16 @@ begin
   insert into mingle_private.admin_audit(actor,action) values(p_actor,'Delete report '||p_report::text);
 end $$;
 
-create or replace function public.mingle_count_pageview()
-returns void language sql security definer set search_path = '' as $$ select mingle_private.increment('pageviews'); $$;
+create or replace function public.mingle_count_pageview(p_country text default null)
+returns void language plpgsql security definer set search_path = '' as $$
+declare v_minute timestamptz := date_trunc('minute', now());
+begin
+  perform mingle_private.increment('pageviews');
+  insert into mingle_private.minute_stats(minute,visits,countries)
+    values(v_minute,1,case when p_country ~ '^[A-Z]{2}$' then jsonb_build_object(p_country,1) else '{}'::jsonb end)
+  on conflict(minute) do update set visits=mingle_private.minute_stats.visits+1,
+    countries=case when p_country ~ '^[A-Z]{2}$' then jsonb_set(mingle_private.minute_stats.countries,array[p_country],to_jsonb(coalesce((mingle_private.minute_stats.countries->>p_country)::bigint,0)+1),true) else mingle_private.minute_stats.countries end;
+end $$;
 
 create or replace function public.mingle_count_visitor(p_month date, p_hash text, p_remove boolean default false)
 returns void language plpgsql security definer set search_path = '' as $$
@@ -313,6 +327,12 @@ end $$;
 create or replace function public.mingle_metrics()
 returns jsonb language sql stable security definer set search_path = '' as $$
   select jsonb_build_object(
+    'visits30m',(select coalesce(sum(visits),0) from mingle_private.minute_stats where minute>=date_trunc('minute',now())-interval '29 minutes'),
+    'visitsToday',(select coalesce(sum(visits),0) from mingle_private.minute_stats where minute>=date_trunc('day',now())),
+    'visitsMonth',(select coalesce(sum(pageviews),0) from mingle_private.daily_stats where day>=date_trunc('month',now() at time zone 'UTC')::date),
+    'reportsTotal',(select count(*) from mingle_private.reports),
+    'visitSeries',coalesce((select jsonb_agg(jsonb_build_object('minute',minute,'visits',visits) order by minute) from mingle_private.minute_stats where minute>=date_trunc('minute',now())-interval '29 minutes'),'[]'::jsonb),
+    'countries',coalesce((select jsonb_agg(jsonb_build_object('country',country,'visits',visits) order by visits desc) from (select key country,sum(value::bigint) visits from mingle_private.minute_stats, jsonb_each_text(countries) where minute>=now()-interval '30 days' group by key order by visits desc limit 10) ranked),'[]'::jsonb),
     'online',jsonb_build_object(
       'connected',(select count(*) from mingle_private.visitor_sessions where expires_at>now() and state<>'stopped' and not mingle_private.is_banned(ip)),
       'waiting',(select count(*) from mingle_private.visitor_sessions where expires_at>now() and state='waiting' and not mingle_private.is_banned(ip)),
@@ -347,6 +367,7 @@ begin
   delete from mingle_private.ip_bans where expires_at<=now();
   delete from mingle_private.admin_sessions where expires_at<=now();
   delete from mingle_private.rate_limits where expires_at<=now();
+  delete from mingle_private.minute_stats where minute<now()-interval '31 days';
   v_oldest := (date_trunc('month',now() at time zone 'UTC')-interval '12 months')::date;
   delete from mingle_private.daily_stats where day<v_oldest;
   delete from mingle_private.monthly_visitors where month<v_oldest;
