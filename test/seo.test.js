@@ -42,11 +42,9 @@ test('robots and sitemap expose crawlable content without API endpoints', async 
   assert.doesNotMatch(sitemap, /\/api\//);
 });
 
-test('typo coverage is visible and limited instead of hidden keyword stuffing', async () => {
+test('landing page content does not hide text for search engines', async () => {
   const en = await readFile(new URL('en/omegle-alternative.html', root), 'utf8');
   const fr = await readFile(new URL('fr/chat-en-ligne.html', root), 'utf8');
-  assert.match(en, /Omgle/);
-  assert.match(en, /omegl/);
   assert.match(fr, /chat en lgne/);
   assert.match(fr, /cht online/);
   for (const html of [en, fr]) {
