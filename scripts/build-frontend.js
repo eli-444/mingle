@@ -4,7 +4,7 @@ import { resolve, dirname } from 'node:path';
 import { build } from 'esbuild';
 
 const PUBLIC_FILES = [
-  'favicon.svg', 'og-image.png', 'robots.txt', 'sitemap.xml', '404.html',
+  'favicon.svg', 'favicon.png', 'og-image.png', 'robots.txt', 'sitemap.xml', '404.html',
   'index.html', 'terms.html', 'privacy.html', 'rules.html',
   'en/random-video-chat.html', 'en/omegle-alternative.html', 'en/chat-with-strangers.html', 'en/video-chat-without-registration.html',
   'fr/chat-video-aleatoire.html', 'fr/alternative-omegle.html', 'fr/chat-en-ligne.html', 'fr/chat-sans-inscription.html',

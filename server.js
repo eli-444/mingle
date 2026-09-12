@@ -26,7 +26,7 @@ export function createApp(env = process.env) {
     if (banIP) for (const c of clients) if (c.ip === banIP) { c.send(JSON.stringify({ type: 'banned' })); c.close(1008, 'Access suspended'); }
     return { connected: clients.size, waiting: waiting.size, conversations: [...clients].filter(c => c.peer).length / 2 };
   });
-  const files = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/privacy.js': ['privacy.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'], '/favicon.svg': ['favicon.svg', 'image/svg+xml'] };
+  const files = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/privacy.js': ['privacy.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'], '/favicon.svg': ['favicon.svg', 'image/svg+xml'], '/favicon.png': ['favicon.png', 'image/png'] };
   for (const name of ['config', 'legal']) files[`/${name}.js`] = [`${name}.js`, 'text/javascript'];
   for (const name of ['terms', 'privacy', 'rules']) { files[`/${name}`] = [`${name}.html`, 'text/html']; files[`/${name}.html`] = files[`/${name}`]; }
   if (management.enabled) {
