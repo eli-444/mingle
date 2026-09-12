@@ -16,7 +16,7 @@ async function listFiles(url, prefix = '') {
 
 const SEO_PUBLIC_FILES = [
   '404.html', 'app.js', 'config.js', 'en/chat-with-strangers.html', 'en/omegle-alternative.html',
-  'en/random-video-chat.html', 'en/video-chat-without-registration.html', 'favicon.svg',
+  'en/random-video-chat.html', 'en/video-chat-without-registration.html', 'favicon.png', 'favicon.svg',
   'fr/alternative-omegle.html', 'fr/chat-en-ligne.html', 'fr/chat-sans-inscription.html',
   'fr/chat-video-aleatoire.html', 'index.html', 'legal.js', 'og-image.png', 'privacy.html',
   'privacy.js', 'robots.txt', 'rules.html', 'sitemap.xml', 'style.css', 'terms.html'

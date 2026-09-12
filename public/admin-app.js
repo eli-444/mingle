@@ -90,14 +90,67 @@ function action(label, task, dangerous = false) {
   b.onclick = async () => { b.disabled = true; try { await task(); } catch (e) { notice(e.message); } finally { b.disabled = false; } }; return b;
 }
 function rows(id, items, keys) { $(id).replaceChildren(...items.map(item => { const tr = el('tr'); keys.forEach(key => tr.append(el('td', item[key]))); return tr; })); }
+
+function confirmAction(message) {
+  return new Promise(resolve => {
+    const dialog = $('confirmDialog');
+    const previous = document.activeElement;
+    $('confirmMessage').textContent = message;
+    dialog.returnValue = '';
+    dialog.addEventListener('close', () => { previous?.focus(); resolve(dialog.returnValue === 'confirm'); }, { once: true });
+    dialog.showModal();
+  });
+}
+const palette = ['#a3e635', '#38bdf8', '#a78bfa', '#2dd4bf', '#fb7185'];
+const numberFormat = new Intl.NumberFormat('en-GB');
+function plot(id, items, definitions, labelKey) {
+  const host = $(id); host.replaceChildren();
+  if (!items.length) { host.append(el('p', 'No activity recorded yet.', 'chart-empty')); return; }
+  const ns = 'http://www.w3.org/2000/svg';
+  const svgNode = (tag, attrs, text) => { const n = document.createElementNS(ns, tag); Object.entries(attrs).forEach(([k,v]) => n.setAttribute(k,v)); if(text !== undefined) n.textContent = text; return n; };
+  const svg = svgNode('svg', { viewBox:'0 0 640 250', role:'img', 'aria-label': definitions.map(d=>d[1]).join(' and ') + ' over time' });
+  const value = (row,key) => Math.max(0, Number(row[key]) || 0);
+  const maximum = Math.max(1, ...items.flatMap(row => definitions.map(d=>value(row,d[0]))));
+  const x = i => items.length === 1 ? 340 : 52 + i/(items.length-1)*568;
+  const y = v => 208-v/maximum*180;
+  for(let i=0;i<=4;i++){
+    const yy=28+i*45;
+    svg.append(svgNode('line',{x1:52,x2:620,y1:yy,y2:yy,stroke:'#292929','stroke-dasharray':'3 6'}));
+    svg.append(svgNode('text',{x:42,y:yy+4,'text-anchor':'end',fill:'#888', 'font-size':11},new Intl.NumberFormat('en',{notation:'compact',maximumFractionDigits:1}).format(maximum*(4-i)/4)));
+  }
+  const defs = svgNode('defs',{}); svg.append(defs);
+  definitions.forEach(([key,label,color],index)=>{
+    const points=items.map((row,i)=>[x(i),y(value(row,key))]);
+    const gradient=svgNode('linearGradient',{id:id+'-fill-'+index,x1:0,y1:0,x2:0,y2:1});
+    gradient.append(svgNode('stop',{offset:'0%','stop-color':color,'stop-opacity':'.22'}),svgNode('stop',{offset:'100%','stop-color':color,'stop-opacity':'0'})); defs.append(gradient);
+    if(points.length>1){
+      const line='M'+points.map(p=>p.join(',')).join(' L');
+      svg.append(svgNode('path',{d:line+' L620,208 L52,208 Z',fill:'url(#'+id+'-fill-'+index+')'}));
+      svg.append(svgNode('path',{d:line,fill:'none',stroke:color,'stroke-width':2.5,'stroke-linejoin':'round','stroke-linecap':'round'}));
+    }
+    points.forEach(([xx,yy],i)=>{const dot=svgNode('circle',{cx:xx,cy:yy,r:points.length===1?5:3,fill:color}); dot.append(svgNode('title',{},String(items[i][labelKey])+': '+numberFormat.format(value(items[i],key))+' '+label));svg.append(dot);});
+  });
+  const formatLabel = row => labelKey==='minute' ? new Date(row.minute).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'UTC'}) : String(row[labelKey]);
+  [...new Set([0,Math.floor((items.length-1)/2),items.length-1])].forEach(i=>svg.append(svgNode('text',{x:x(i),y:239,'text-anchor':i===0?'start':i===items.length-1?'end':'middle',fill:'#999','font-size':11},formatLabel(items[i]))));
+  host.append(svg);
+  const legend=el('div',undefined,'chart-legend');
+  definitions.forEach(([,label,color])=>{const item=el('span',label);item.style.setProperty('--series',color);legend.append(item);});
+  host.append(legend);
+}
+
 function renderMetrics(data) {
   $('updated').textContent = 'Statistics updated at ' + new Date().toLocaleTimeString('en-GB') + ' · refreshed every 5 s';
-  $('live').replaceChildren(...[['Visits / 30 min', data.visits30m], ['Visits today', data.visitsToday], ['Visits this month', data.visitsMonth], ['People online', data.online.connected], ['Reports', data.reportsTotal]].map(([label, number]) => { const div = el('div', undefined, 'card'); div.append(el('strong', number ?? 0), el('span', label)); return div; }));
-  const series = data.visitSeries || [];
-  const maxVisit = Math.max(1, ...series.map(row => Number(row.visits || 0)));
-  $('trafficChart').replaceChildren(...series.map(row => { const bar = el('span', undefined, 'traffic-bar'); bar.style.height = Math.max(4, Number(row.visits || 0) / maxVisit * 100) + '%'; bar.title = new Date(row.minute).toLocaleTimeString('en-GB') + ': ' + row.visits + ' visits'; return bar; }));
+  $('live').replaceChildren(...[['Visits / 30 min', data.visits30m, 'Rolling window'], ['Visits today', data.visitsToday, 'Since 00:00 UTC'], ['Visits this month', data.visitsMonth, 'Calendar month'], ['People online', data.online.connected, 'Active chat sessions'], ['Reports', data.reportsTotal, 'All reports']].map(([label, number, caption], i) => {
+    const div = el('div', undefined, 'card'); div.style.setProperty('--accent', palette[i]);
+    const top = el('div', undefined, 'metric-top'); top.append(el('span', label), el('span', ['↗','◷','▥','◉','⚑'][i], 'metric-icon'));
+    div.append(top, el('strong', numberFormat.format(number ?? 0)), el('small', caption)); return div;
+  }));
+  plot('trafficChart', data.visitSeries || [], [['visits','Visits per minute · UTC',palette[0]]], 'minute');
+  plot('dailyChart', [...(data.daily || [])].sort((a,b)=>a.date.localeCompare(b.date)), [['pageviews','Page views',palette[1]],['connections','Connections',palette[2]]], 'date');
+  plot('monthlyChart', [...(data.monthly || [])].sort((a,b)=>a.month.localeCompare(b.month)), [['pageviews','Page views',palette[0]],['matches','Matches',palette[3]]], 'month');
   const maxCountry = Math.max(1, ...(data.countries || []).map(item => Number(item.visits)));
   $('countries').replaceChildren(...(data.countries || []).map(item => { const row = el('div', undefined, 'country-row'); const label = el('div'); label.append(el('strong', item.country), el('span', item.visits + ' visits')); const track = el('div', undefined, 'country-track'); const fill = el('i'); fill.style.width = (Number(item.visits) / maxCountry * 100) + '%'; track.append(fill); row.append(label, track); return row; }));
+  if (!(data.countries || []).length) $('countries').append(el('p', 'No country data yet.', 'chart-empty'));
   rows('monthly', data.monthly, ['month', 'pageviews', 'connections', 'visitors', 'peak', 'matches', 'reports']); rows('daily', data.daily, ['date', 'pageviews', 'connections', 'peak', 'matches', 'reports']);
 }
 async function refreshMetrics() {
@@ -120,8 +173,8 @@ async function load() {
     const days = el('select'); days.setAttribute('aria-label', 'Ban duration'); [1, 7, 30].forEach(n => { const option = el('option', n + ' day(s)'); option.value = n; days.append(option); }); days.value = '7';
     const buttons = el('div', undefined, 'report-actions');
     buttons.append(action('Save', async () => { await api('report', { id: report.id, action: 'update', status: status.value, notes: notes.value }); await load(); notice('Report updated.'); }), days,
-      action('Ban this IP', async () => { if (!confirm('Ban this IP for ' + days.value + ' day(s)? This may affect a shared network.')) return; await api('report', { id: report.id, action: 'ban', days: Number(days.value) }); await load(); notice('IP banned.'); }, true),
-      action('Delete', async () => { if (!confirm('Permanently delete this report and its IP?')) return; await api('report', { id: report.id, action: 'delete' }); await load(); notice('Report deleted.'); }, true));
+      action('Ban this IP', async () => { if (!await confirmAction('Ban this IP for ' + days.value + ' day(s)? This may affect a shared network.')) return; await api('report', { id: report.id, action: 'ban', days: Number(days.value) }); await load(); notice('IP banned.'); }, true),
+      action('Delete', async () => { if (!await confirmAction('Permanently delete this report and its IP?')) return; await api('report', { id: report.id, action: 'delete' }); await load(); notice('Report deleted.'); }, true));
     card.append(status, notes, buttons); return card;
   }));
   if (!data.reports.length) $('reports').append(el('p', 'No reports.'));
@@ -131,7 +184,7 @@ async function load() {
     card.append(el('h3', contact.firstName + ' ' + contact.lastName + ' · ' + contact.email), el('p', date(contact.created) + ' · ' + contact.id, 'meta'), el('p', contact.message, 'details'));
     const status = el('select'); status.setAttribute('aria-label', 'Mail status'); Object.entries(contactStates).forEach(([value, label]) => { const option = el('option', label); option.value = value; status.append(option); }); status.value = contact.status;
     const notes = el('textarea'); notes.value = contact.notes || ''; notes.maxLength = 2000; notes.placeholder = 'Internal notes';
-    const buttons = el('div', undefined, 'report-actions'); buttons.append(action('Save', async () => { await api('contact', { id: contact.id, action: 'update', status: status.value, notes: notes.value }); await load(); notice('Mail updated.'); }), action('Delete', async () => { if (!confirm('Delete this message?')) return; await api('contact', { id: contact.id, action: 'delete' }); await load(); notice('Mail deleted.'); }, true));
+    const buttons = el('div', undefined, 'report-actions'); buttons.append(action('Save', async () => { await api('contact', { id: contact.id, action: 'update', status: status.value, notes: notes.value }); await load(); notice('Mail updated.'); }), action('Delete', async () => { if (!await confirmAction('Delete this message?')) return; await api('contact', { id: contact.id, action: 'delete' }); await load(); notice('Mail deleted.'); }, true));
     card.append(status, notes, buttons); return card;
   }));
   if (!(data.contacts || []).length) $('contacts').append(el('p', 'No messages.'));

@@ -70,9 +70,9 @@ try {
   assert.ok(await admin.locator('#monthly tr').count());
   await admin.reload(); await admin.locator('#dashboard').waitFor();
   stage = 'bannissement et déblocage';
-  admin.once('dialog', dialog => dialog.accept());
   testBan = true;
   await admin.locator(`[data-report-id="${reportId}"]`).getByRole('button', { name: 'Ban this IP' }).click();
+  await admin.locator('#confirmDialog').getByRole('button', { name: 'Confirm', exact: true }).click();
   for (const page of [c, d]) await page.waitForFunction(() => document.getElementById('error').textContent.includes('suspended'), null, { timeout: 15000 });
   // The former partner is now idle: its next heartbeat is at most 25s away.
   await b.waitForFunction(() => document.getElementById('error').textContent.includes('suspended'), null, { timeout: 35000 });

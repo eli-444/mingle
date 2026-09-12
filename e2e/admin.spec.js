@@ -19,14 +19,14 @@ test('visitor reports a peer and admin reviews, bans and deletes the report', as
   await admin.locator('.report').getByRole('button', { name: 'Save', exact: true }).click();
   await expect(admin.locator('.report h3')).toContainText('In review');
   await admin.screenshot({ path: 'test-results/admin.png', fullPage: true });
-  admin.on('dialog', dialog => dialog.accept());
   await admin.getByRole('button', { name: 'Ban this IP' }).click();
+  await admin.locator('#confirmDialog').getByRole('button', { name: 'Confirm', exact: true }).click();
   await admin.getByRole('link', { name: 'IP bans', exact: true }).click();
   await expect(admin.locator('#bans')).toContainText('127.0.0.1');
   await expect(b.locator('#error')).toContainText('suspended');
   await admin.getByRole('button', { name: 'Unban', exact: true }).click(); await expect(admin.locator('.ban')).toHaveCount(0);
   await admin.getByRole('link', { name: 'Reports', exact: true }).click();
-  await admin.locator('.report').getByRole('button', { name: 'Delete' }).click(); await expect(admin.locator('.report')).toHaveCount(0);
+  await admin.locator('.report').getByRole('button', { name: 'Delete' }).click(); await admin.locator('#confirmDialog').getByRole('button', { name: 'Confirm', exact: true }).click(); await expect(admin.locator('.report')).toHaveCount(0);
   await admin.locator('#logout').click(); await expect(admin.locator('#login')).toBeVisible();
   expect(errors).toEqual([]); await Promise.all(contexts.map(c => c.close()));
 });

@@ -105,3 +105,18 @@ test('mobile login and logout remain usable', async ({ page }) => {
   await expect(page.locator('#dashboard')).toBeHidden();
   await expect(page.locator('#menuBackdrop')).toBeHidden();
 });
+
+ test('charts handle empty data and confirmation can be cancelled safely', async ({page}) => {
+ await mockApi(page); await page.goto(adminPath);
+ await expect(page.locator('#trafficChart svg')).toBeVisible();
+ await navigate(page,'Analytics'); await expect(page.locator('#dailyChart svg circle')).toHaveCount(2);
+ await navigate(page,'Reports');
+ const mutations=[]; page.on('request',r=>{if(r.method()==='POST')mutations.push(r.url());});
+ await page.getByRole('button',{name:'Delete',exact:true}).click();
+ await expect(page.getByRole('dialog')).toBeVisible();
+ await expect(page.getByRole('button',{name:'Cancel',exact:true})).toBeFocused();
+ await page.keyboard.press('Escape'); await expect(page.getByRole('dialog')).toBeHidden();
+ expect(mutations).toEqual([]); await expect(page.locator('#reports .report')).toHaveCount(1);
+ await page.route('**'+adminPath+'/api/metrics',r=>r.fulfill({json:{...dashboard(),visitSeries:[],daily:[],monthly:[],countries:[]}}));
+ await navigate(page,'Overview'); await expect(page.locator('#trafficChart')).toContainText('No activity recorded yet.',{timeout:10000});
+ });
